@@ -7,7 +7,12 @@
 
 <MenuBar>
 	<Menu name="file" >
-		<Action name="clear" />
+		<Action name="newquerytab" />
+		<Separator />
+		<Action name="newscripttab" />
+		<Action name="openscript" />
+		<Action name="savescript" />
+		<Action name="savescriptas" />
 	</Menu>
 </MenuBar>
 

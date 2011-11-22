@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>systable.png</file>
+        <file>table.png</file>
+        <file>view.png</file>
+        <file>key.png</file>
+    </qresource>
+</RCC>

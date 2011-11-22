@@ -9,7 +9,9 @@ set(kquerybrowser_SRCS
 	connectiondialog.cpp
 	connection.cpp
 	sqlite3connection.cpp
+	queryview.cpp
 	querywidget.cpp
+	scriptwidget.cpp
 	queryjsobject.cpp
 	dbctxmanager.cpp
 	dbcontext.cpp
@@ -18,13 +20,18 @@ set(kquerybrowser_SRCS
 	table.cpp
 	column.cpp
 	tablelistwidget.cpp
+	sqllineedit.cpp
 )
+
+SET(kquerybrowser_RCCS res/resources.qrc)
 
 kde4_add_ui_files( kquerybrowser_SRCS connectiondialog.ui )
 
+qt4_add_resources(kquerybrowser_SRCS ${kquerybrowser_RCCS})
+
 kde4_add_executable(kquerybrowser ${kquerybrowser_SRCS})
 
-target_link_libraries(kquerybrowser ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${QT_QTSQL_LIBRARY} ${QT_QTWEBKIT_LIBRARY})
+target_link_libraries(kquerybrowser ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${KDE4_KTEXTEDITOR_LIBS} ${QT_QTSQL_LIBRARY} ${QT_QTWEBKIT_LIBRARY})
 install(TARGETS kquerybrowser  ${INSTALL_TARGETS_DEFAULT_ARGS})
-install(FILES kquerybrowserui.rc
+install(FILES data/kquerybrowserui.rc
 		DESTINATION  ${DATA_INSTALL_DIR}/kquerybrowser)

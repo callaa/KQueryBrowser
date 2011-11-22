@@ -11,17 +11,26 @@
 class Table
 {
 public:
-	Table();
-	Table(const QString& name, const QVector<Column> &columns, bool view);
+	enum Type {TABLE, VIEW, SYSTEMTABLE};
 
+	Table();
+	Table(const QString& name, const QVector<Column> &columns, Type type);
+
+	//! Get the name of this table
 	const QString& name() const { return m_name; }
-	const QVector<Column> columns() const { return m_columns; }
-	bool isView() const { return m_view; }
+
+	//! Get the columns in this table
+	const QVector<Column> &columns() const { return m_columns; }
+
+	QVector<Column> &columns() { return m_columns; }
+
+	//! Get the table type
+	Type type() const { return m_type; }
 
 private:
 	QString m_name;
 	QVector<Column> m_columns;
-	bool m_view;
+	Type m_type;
 };
 
 #endif // TABLE_H

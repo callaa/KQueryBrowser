@@ -2,6 +2,9 @@
 #define DBCTXMANAGER_H
 
 #include <QObject>
+#include <QVector>
+
+#include "table.h"
 
 class Connection;
 class Database;
@@ -16,11 +19,14 @@ signals:
 	void dbStructure(const Database& db);
 
 public slots:
-	void createContext(const QObject *forthis);
+	void createContext(QObject *forthis);
+	void removeContext(QObject *forthis);
 	void getDbStructure();
 
 private:
+	void addTables(QVector<Table> &tables, const QStringList& names, Table::Type type);
 	Connection *m_connection;
+
 };
 
 #endif // DBCTXMANAGER_H

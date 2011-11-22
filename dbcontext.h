@@ -7,11 +7,19 @@ class QSqlDatabase;
 class QueryResults;
 class Tables;
 
+/**
+  \brief A database context
+
+  A database context holds state on the database thread relevant to a query/script window.
+  */
 class DbContext : public QObject
 {
     Q_OBJECT
 public:
-	explicit DbContext(QSqlDatabase &db, QObject *parent = 0);
+	explicit DbContext(QObject *target, QSqlDatabase &db, QObject *parent = 0);
+	~DbContext();
+
+	bool isForTarget(const QObject *target) const { return m_target == target; }
 
 signals:
 	void results(const QueryResults& results);
@@ -26,6 +34,9 @@ public slots:
 
 private:
 	QSqlDatabase &m_db;
+
+	// This points to an object in another thread. It is used only to identify this context
+	QObject *m_target;
 
 };
 

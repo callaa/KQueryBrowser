@@ -9,9 +9,14 @@
 #include "dbcontext.h"
 #include "queryresults.h"
 
-DbContext::DbContext(QSqlDatabase &db, QObject *parent) :
-	QObject(parent), m_db(db)
+DbContext::DbContext(QObject *target, QSqlDatabase &db, QObject *parent) :
+	QObject(parent), m_db(db), m_target(target)
 {
+}
+
+DbContext::~DbContext()
+{
+	qDebug() << "Destructing DB context";
 }
 
 void DbContext::doQuery(const QString &querystr, int limit)

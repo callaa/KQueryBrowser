@@ -3,8 +3,8 @@
 
 #include <QWidget>
 
-class QWebView;
-class KLineEdit;
+class QueryView;
+class SqlLineEdit;
 class QueryResults;
 
 class QueryWidget : public QWidget
@@ -20,12 +20,12 @@ public slots:
 	void queryResults(const QueryResults& results);
 
 protected slots:
-	void initQueryBrowser(bool ok);
-	void doQuery();
+
+	void doQuery(const QString& query);
 
 private:
-	QWebView *m_view;
-	KLineEdit *m_query;
+	QueryView *m_view;
+	SqlLineEdit *m_query;
 };
 
 #endif // QUERYWIDGET_H

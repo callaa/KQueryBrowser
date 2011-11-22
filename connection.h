@@ -28,7 +28,7 @@ public:
 	  which will create a new context for the query tool object.
 	  The following signals and slots will be connected:
 	  */
-	void connectContext(const QObject *querytool);
+	void connectContext(QObject *querytool);
 
 	/**
 	  \brief Request emission of latest dbStructure
@@ -43,7 +43,7 @@ signals:
 	void cannotOpen(const QString& message);
 
 	//! Internal use only: Request new context for an object from the context manager
-	void needNewContext(const QObject *forthis);
+	void needNewContext(QObject *forthis);
 
 	//! Internal use only: Request new dbStructure
 	void needDbStructure();
@@ -69,10 +69,10 @@ protected:
 	  */
 	virtual QString type() const = 0;
 
-private:
 	//! Database connection
 	QSqlDatabase m_db;
 
+private:
 	//! Number of connections opened (this is used to make unique connection names)
 	static int m_count;
 };

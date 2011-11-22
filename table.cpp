@@ -6,8 +6,8 @@ Table::Table()
 
 }
 
-Table::Table(const QString& name, const QVector<Column> &columns, bool view)
-	: m_name(name), m_columns(columns), m_view(view)
+Table::Table(const QString& name, const QVector<Column> &columns, Type type)
+	: m_name(name), m_columns(columns), m_type(type)
 {
 
 }

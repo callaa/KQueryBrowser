@@ -12,29 +12,47 @@ DbCtxManager::DbCtxManager(Connection *connection) :
 {
 }
 
-void DbCtxManager::createContext(const QObject *forthis)
+void DbCtxManager::createContext(QObject *forthis)
 {
 	qDebug() << "Creating a new context!";
-	DbContext *ctx = new DbContext(m_connection->m_db, this);
+	DbContext *ctx = new DbContext(forthis, m_connection->m_db, this);
 	connect(forthis, SIGNAL(doQuery(QString, int)), ctx, SLOT(doQuery(QString, int)));
 	connect(ctx, SIGNAL(results(QueryResults)), forthis, SLOT(queryResults(QueryResults)));
+	connect(forthis, SIGNAL(destroyed(QObject*)), this, SLOT(removeContext(QObject*)));
 }
 
-static void addTables(QVector<Table> &tables, QSqlDatabase &db, const QStringList& names, bool isview) {
+void DbCtxManager::removeContext(QObject *forthis)
+{
+	DbContext *delctx = 0;
+	foreach(QObject *c, this->children()) {
+		DbContext *ctx = qobject_cast<DbContext*>(c);
+		if(ctx!=0 && ctx->isForTarget(forthis)) {
+			delctx = ctx;
+			break;
+		}
+	}
+	delete delctx;
+}
+
+void DbCtxManager::addTables(QVector<Table> &tables, const QStringList& names, Table::Type type) {
 	foreach(const QString& t, names) {
-		QSqlRecord r = db.record(t);
+		QSqlRecord r = m_connection->m_db.record(t);
 		QVector<Column> cols(r.count());
 		for(int i=0;i<r.count();++i)
 			cols[i] = Column(r.fieldName(i));
-		tables.append(Table(t, cols, isview));
+
+		Table tbl(t, cols, type);
+		m_connection->setExtraInfo(tbl);
+		tables.append(tbl);
 	}
 }
 
 void DbCtxManager::getDbStructure()
 {
 	QVector<Table> tables;
-	addTables(tables, m_connection->m_db, m_connection->m_db.tables(QSql::Tables), false);
-	addTables(tables, m_connection->m_db, m_connection->m_db.tables(QSql::Views), true);
+	addTables(tables, m_connection->m_db.tables(QSql::Tables), Table::TABLE);
+	addTables(tables, m_connection->m_db.tables(QSql::Views), Table::VIEW);
+	addTables(tables, m_connection->m_db.tables(QSql::SystemTables), Table::SYSTEMTABLE);
 
 	emit dbStructure(Database(tables));
 }
