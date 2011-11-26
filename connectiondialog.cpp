@@ -8,6 +8,7 @@
 
 #include "db/sqlite3connection.h"
 #include "db/mysqlconnection.h"
+#include "db/pgsqlconnection.h"
 
 ConnectionDialog::ConnectionDialog(QWidget *parent) :
 	KDialog(parent),
@@ -95,6 +96,8 @@ void ConnectionDialog::openConnection()
 		ServerConnection *srvcon;
 		if(m_ui->dbtype->currentIndex()==1) {
 			srvcon = new MysqlConnection();
+		} else if(m_ui->dbtype->currentIndex()==2) {
+			srvcon = new PgsqlConnection();
 		} else  {
 			KMessageBox::sorry(this,"Bug: unimplemented selection " + QString::number(m_ui->dbtype->currentIndex()));
 			return;

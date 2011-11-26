@@ -11,6 +11,7 @@ set(kquerybrowser_SRCS
 	db/sqlite3connection.cpp
 	db/serverconnection.cpp
 	db/mysqlconnection.cpp
+	db/pgsqlconnection.cpp
 	db/dbctxmanager.cpp
 	db/dbcontext.cpp
 	queryview.cpp
