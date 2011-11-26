@@ -52,6 +52,8 @@ th:last-child {
 	border-top-right-radius: 0.4em;
 }
 
+th:only-child { background-image: none }
+
 th.pk { font-weight: bold }
 th.fk { text-decoration: underline }
 
@@ -88,6 +90,17 @@ td>b {
 .success {
 	border-color: #0c0;
 	background: #cfc;
+}
+
+div.ui {
+	margin-top: 1em;
+}
+
+.ui a {
+        -webkit-appearance: button;
+        color: #000;
+        text-decoration: none;
+        padding: 0.5em;
 }
 
 /* Spinner shown while waiting for data */

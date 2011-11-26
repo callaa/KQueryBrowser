@@ -24,6 +24,13 @@ public:
 
 	QVector<Column> &columns() { return m_columns; }
 
+	/**
+	  \brief Get the named column
+
+	  \return pointer to column or 0 if not found
+	  */
+	Column *column(const QString& name);
+
 	//! Get the table type
 	Type type() const { return m_type; }
 

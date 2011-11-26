@@ -11,3 +11,11 @@ Table::Table(const QString& name, const QVector<Column> &columns, Type type)
 {
 
 }
+
+Column *Table::column(const QString &name)
+{
+	for(int i=0;i<m_columns.size();++i)
+		if(m_columns[i].name() == name)
+			return &m_columns[i];
+	return 0;
+}

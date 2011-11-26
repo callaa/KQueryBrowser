@@ -15,7 +15,7 @@ typedef QVector<ResultRow> ResultRows;
 
 struct QueryResultsData : public QSharedData
 {
-	bool select, success, more;
+	bool select, success, more, continuation;
 	int rowcount;
 	QString error;
 	ResultRows rows;
@@ -44,7 +44,7 @@ public:
 	int rowCount() const { return m_d->rowcount; }
 
 	/**
-	  \brief Was the query succesfull?
+	  \brief Was the query successful?
 	  */
 	bool success() const { return m_d->success; }
 
@@ -59,6 +59,12 @@ public:
 	  \return true if this is not the whole result set
 	  */
 	bool isMore() const { return m_d->more; }
+
+	/**
+	  \brief Is this result set more rows for the last query?
+	  \return true if this is a continuation of the previous query
+	  */
+	bool isContinuation() const { return m_d->continuation; }
 
 	/**
 	  \brief Get the rows returned by the (SELECT) query.

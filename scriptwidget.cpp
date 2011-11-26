@@ -1,3 +1,11 @@
+#include <QDebug>
+
+#include <QAction>
+#include <QToolBar>
+#include <QSplitter>
+#include <QVBoxLayout>
+#include <QRegExp>
+
 #include <KTextEditor/EditorChooser>
 #include <KTextEditor/View>
 #include <KTextEditor/Document>
@@ -5,27 +13,30 @@
 
 #include <KMessageBox>
 
-#include <QAction>
-#include <QToolBar>
-#include <QSplitter>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QRegExp>
-
 #include "scriptwidget.h"
 #include "queryview.h"
 
-ScriptWidget::ScriptWidget(QWidget *parent) :
-    QWidget(parent)
+ScriptWidget::ScriptWidget(const KUrl& url, QWidget *parent) :
+	QWidget(parent), m_documenturl(url), m_document(0)
 {
-	// Code editor
+	// Load document
 	KTextEditor::Editor *editor = KTextEditor::EditorChooser::editor();
 	if (!editor) {
-		KMessageBox::error(this, tr("A KDE text-editor component could not be found;\n" "please check your KDE installation."));
+		KMessageBox::error(0, tr("A KDE text-editor component could not be found;\n" "please check your KDE installation."));
 		return;
 	}
 
-	m_document = editor->createDocument(0);
+	m_document = editor->createDocument(this);
+	if(!url.isEmpty()) {
+		if(!m_document->openUrl(url)) {
+			return;
+		}
+	}
+
+	connect(m_document, SIGNAL(modifiedChanged(KTextEditor::Document*)), this, SLOT(scriptModifiedChanged()));
+	connect(m_document, SIGNAL(documentNameChanged(KTextEditor::Document*)), this, SLOT(scriptModifiedChanged()));
+
+	// Create text editor view
 	m_view = m_document->createView(this);
 
 	// Set SQL highlight mode (TODO mysql/postgresql variant)
@@ -44,14 +55,24 @@ ScriptWidget::ScriptWidget(QWidget *parent) :
 	// Result view
 	m_resultview = new QueryView(this);
 
-	// Actions
-	QAction *actExec = new QAction(KIcon("quickopen"), tr("Run"), this);
-	connect(actExec, SIGNAL(triggered()), this, SLOT(executeQuery()));
-
 	// Action bar
 	QToolBar *toolbar = new QToolBar(this);
 	toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	toolbar->setIconSize(QSize(16,16));
+
+	// Actions
+	QAction *actExec = new QAction(KIcon("quickopen"), tr("Run"), this);
+	connect(actExec, SIGNAL(triggered()), this, SLOT(executeQuery()));
 	toolbar->addAction(actExec);
+
+#if 0 // todo
+	QAction *actStep = new QAction(KIcon("debug-step-over"), tr("Step"), this);
+	toolbar->addAction(actStep);
+
+	QAction *actStop = new QAction(KIcon("process-stop"), tr("Stop"), this);
+	actStop->setEnabled(false);
+	toolbar->addAction(actStop);
+#endif
 
 	// Layout
 	QSplitter *splitter = new QSplitter(Qt::Vertical, this);
@@ -62,9 +83,15 @@ ScriptWidget::ScriptWidget(QWidget *parent) :
 	splitter->setStretchFactor(1, 1);
 
 	QVBoxLayout *layout = new QVBoxLayout(this);
+	layout->setSpacing(0);
 	layout->addWidget(toolbar);
 	layout->addWidget(splitter);
 	setLayout(layout);
+}
+
+bool ScriptWidget::isValid() const
+{
+	return m_document != 0;
 }
 
 void ScriptWidget::executeQuery()
@@ -72,11 +99,50 @@ void ScriptWidget::executeQuery()
 	m_resultview->clear();
 	m_resultview->startNewQuery(QString());
 
-	// TODO this only executes the first statement
+	// TODO this only executes the first statement (sqlite oddity?)
 	emit doQuery(m_document->text(), 0);
 }
 
 void ScriptWidget::queryResults(const QueryResults& results)
 {
 	m_resultview->showResults(results);
+}
+
+bool ScriptWidget::save()
+{
+	return m_document->save();
+}
+
+bool ScriptWidget::saveAs(const KUrl& url)
+{
+	if(m_document->saveAs(url)) {
+		m_documenturl = url;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+QString ScriptWidget::documentName() const
+{
+	QString name = m_document->documentName();
+	if(m_document->isModified())
+		name += "*";
+	return name;
+}
+
+bool ScriptWidget::isUnsaved() const
+{
+	return m_document->isModified();
+}
+
+void ScriptWidget::scriptModifiedChanged()
+{
+	emit nameChange(documentName());
+}
+
+void ScriptWidget::showEvent(QShowEvent *e)
+{
+	m_view->setFocus();
+	QWidget::showEvent(e);
 }

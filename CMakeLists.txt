@@ -7,14 +7,15 @@ set(kquerybrowser_SRCS
 	main.cpp
 	mainwindow.cpp
 	connectiondialog.cpp
-	connection.cpp
-	sqlite3connection.cpp
+	db/connection.cpp
+	db/sqlite3connection.cpp
+	db/serverconnection.cpp
+	db/mysqlconnection.cpp
+	db/dbctxmanager.cpp
+	db/dbcontext.cpp
 	queryview.cpp
 	querywidget.cpp
 	scriptwidget.cpp
-	queryjsobject.cpp
-	dbctxmanager.cpp
-	dbcontext.cpp
 	queryresults.cpp
 	database.cpp
 	table.cpp

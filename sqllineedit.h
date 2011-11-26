@@ -15,6 +15,9 @@ public:
 
 	bool isEmpty() const;
 
+	//! Push text to history
+	void pushHistory(const QString& text);
+
 signals:
 	void returnPressed(const QString &text);
 

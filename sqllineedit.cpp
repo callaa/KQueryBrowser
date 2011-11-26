@@ -7,6 +7,15 @@ SqlLineEdit::SqlLineEdit(QWidget *parent) :
 {
 }
 
+void SqlLineEdit::pushHistory(const QString &text)
+{
+	m_history.append(text);
+	if(m_history.count() > 100) /* TODO configurable limit */
+		m_history.removeFirst();
+
+	if(m_historypos==m_history.count()-1)
+		++m_historypos;
+}
 
 void SqlLineEdit::keyPressEvent(QKeyEvent *event)
 {
@@ -29,12 +38,12 @@ void SqlLineEdit::keyPressEvent(QKeyEvent *event)
 		QString txt = text().trimmed();
 		if(!txt.isEmpty()) {
 			if(m_history.isEmpty() || m_history.last() != txt) {
-				m_history.append(txt);
-				if(m_history.count() > 100) /* TODO configurable limit */
-					m_history.removeFirst();
+				pushHistory(txt);
 			}
 			m_historypos = m_history.count();
 			setText(QString());
+			emit returnPressed(txt);
+		} else {
 			emit returnPressed(txt);
 		}
 	} else {

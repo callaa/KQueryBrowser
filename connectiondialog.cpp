@@ -6,7 +6,8 @@
 #include "ui_connectiondialog.h"
 #include "mainwindow.h"
 
-#include "sqlite3connection.h"
+#include "db/sqlite3connection.h"
+#include "db/mysqlconnection.h"
 
 ConnectionDialog::ConnectionDialog(QWidget *parent) :
 	KDialog(parent),
@@ -25,10 +26,22 @@ ConnectionDialog *ConnectionDialog::open(const QUrl& url)
 
 	bool ok = false;
 	if(url.scheme() == "sqlite3") {
+		dlg->m_ui->dbtype->setCurrentIndex(0);
 		dlg->m_ui->stackedWidget->setCurrentIndex(0);
 		dlg->m_ui->filepath->setText(url.path());
 		// TODO check that the file exists
 		ok = !url.path().isEmpty();
+	} else if(url.scheme()=="mysql"){
+		dlg->m_ui->dbtype->setCurrentIndex(1);
+		dlg->m_ui->stackedWidget->setCurrentIndex(1);
+		dlg->m_ui->dbname->setText(url.path().mid(1));
+		if(url.port()>0)
+			dlg->m_ui->serverport->setText(QString::number(url.port()));
+		dlg->m_ui->servername->setText(url.host());
+		dlg->m_ui->username->setText(url.userName());
+		dlg->m_ui->password->setText(url.password());
+
+		ok = !dlg->m_ui->servername->text().isEmpty();
 	} else {
 		KMessageBox::sorry(0,"Unknown database type " + url.scheme());
 	}
@@ -79,8 +92,24 @@ void ConnectionDialog::openConnection()
 	if(m_ui->dbtype->currentIndex()==0) {
 		m_connection = new Sqlite3Connection(m_ui->filepath->text());
 	} else {
-		KMessageBox::sorry(this,"Bug: unimplemented selection " + QString::number(m_ui->dbtype->currentIndex()));
-		return;
+		ServerConnection *srvcon;
+		if(m_ui->dbtype->currentIndex()==1) {
+			srvcon = new MysqlConnection();
+		} else  {
+			KMessageBox::sorry(this,"Bug: unimplemented selection " + QString::number(m_ui->dbtype->currentIndex()));
+			return;
+		}
+
+		srvcon->setServer(m_ui->servername->text());
+		bool ok;
+		int port = m_ui->serverport->text().toInt(&ok);
+		if(ok)
+			srvcon->setPort(port);
+		srvcon->setUsername(m_ui->username->text());
+		srvcon->setPassword(m_ui->password->text());
+		srvcon->setDatabase(m_ui->dbname->text());
+
+		m_connection = srvcon;
 	}
 
 	// Connect open/fail signals

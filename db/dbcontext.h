@@ -4,7 +4,9 @@
 #include <QObject>
 
 class QSqlDatabase;
+class QSqlQuery;
 class QueryResults;
+class QueryResultsData;
 class Tables;
 
 /**
@@ -28,12 +30,23 @@ public slots:
 	/**
 	  \brief Perform a database query.
 
-	  A results signal will be emitted once the query is complete.
+	  A results signal will be emitted once the query is complete or limit reached.
 	  */
 	void doQuery(const QString& querystr, int limit);
 
+	/**
+	  \brief Request more results from the currently open query.
+
+	  A results signal will be emitted once the query is complete or limit reached.
+	  */
+	void getMoreResults(int limit);
+
 private:
+	void gatherRows(QueryResultsData *data, int cols, int limit);
+
 	QSqlDatabase &m_db;
+
+	QSqlQuery *m_query;
 
 	// This points to an object in another thread. It is used only to identify this context
 	QObject *m_target;
