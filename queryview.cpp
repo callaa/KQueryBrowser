@@ -19,11 +19,10 @@ QueryView::QueryView(QWidget *parent) :
 	connect(this, SIGNAL(loadFinished(bool)), this, SLOT(initQueryBrowser(bool)));
 
 	// Build initial content for the web view
-	//QString style = KStandardDirs::installPath("data") + "kquerybrowser/querystyle.css";
-	QString style = "/home/calle/src/kquerybrowser/data/querystyle.css";
-	QString script = "/home/calle/src/kquerybrowser/data/queryscript.js";
+	QString root = KStandardDirs::installPath("data") + "kquerybrowser/";
+	QString style = root + "querystyle.css";
+	QString script = root + "queryscript.js";
 
-	qDebug() << "style:" << style;
 	setHtml("<html><head><link href=\"file://" + style + "\" rel=\"stylesheet\"><script type=\"text/javascript\" src=\"file://" + script + "\"></script><title>KQueryBrowser</title></head><body></body></html>");
 
 	page()->currentFrame()->addToJavaScriptWindowObject("qbrowser", this);
