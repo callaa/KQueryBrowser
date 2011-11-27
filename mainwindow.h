@@ -11,6 +11,7 @@ class MainWindow : public KXmlGuiWindow
 	Q_OBJECT
 public:
 	MainWindow(Connection *connection, QWidget *parent=0);
+	~MainWindow();
 
 public slots:
 	//! Open a new query tab

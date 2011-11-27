@@ -24,7 +24,7 @@ QVector<Schema> PgsqlConnection::schemas()
 			schemas.append(Schema(sname, QVector<Table>()));
 		schema = &schemas.last();
 
-		// Find table
+		// Find table (TODO identify type [normal, view, system])
 		Table *table=0;
 		if(schema->tables().isEmpty() || schema->tables().last().name() != tname)
 			schema->tables().append(Table(tname, QVector<Column>(), Table::TABLE));

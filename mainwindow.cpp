@@ -20,7 +20,6 @@
 MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	: KXmlGuiWindow(parent), m_connection(connection), m_querytabs(0)
 {
-	m_connection->setParent(this);
 	setupActions();
 
 	// Create tabs for query and script widgets. This is the central widget
@@ -44,6 +43,11 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
+}
+
+MainWindow::~MainWindow()
+{
+	delete m_connection;
 }
 
 void MainWindow::setupActions()
