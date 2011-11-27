@@ -15,6 +15,7 @@ typedef QVector<ResultRow> ResultRows;
 
 struct QueryResultsData : public QSharedData
 {
+	QueryResultsData();
 	bool select, success, more, continuation;
 	int rowcount;
 	QString error;

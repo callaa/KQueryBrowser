@@ -42,6 +42,17 @@ public slots:
 	void getMoreResults(int limit);
 
 private:
+	/**
+	  \brief Get new results and emit results().
+	  */
+	void getNewResults(int limit);
+
+	/**
+	  Get rows from the current query and put them in the result data
+	  \param data the result data set
+	  \param cols number of columns in the query result set
+	  \param limit maximum number of results to get (<=0 for unlimited)
+	  */
 	void gatherRows(QueryResultsData *data, int cols, int limit);
 
 	QSqlDatabase &m_db;
