@@ -35,10 +35,12 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	TableListWidget *tablelist = new TableListWidget(this);
 	tablelist->setObjectName("tablelist");
 	tablelist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	tablelist->setFeatures(QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable);
 	addDockWidget(Qt::RightDockWidgetArea, tablelist);
 	connect(m_connection, SIGNAL(dbStructure(Database)), tablelist, SLOT(refreshTree(Database)));
 	connect(tablelist, SIGNAL(runQuery(QString)), this, SLOT(runQuery(QString)));
+	QAction *showtables = actionCollection()->action("showtables");
+	connect(tablelist, SIGNAL(visibilityChanged(bool)), showtables, SLOT(setChecked(bool)));
+	connect(showtables, SIGNAL(triggered(bool)), tablelist, SLOT(setVisible(bool)));
 	m_connection->getDbStructure();
 
 	// Set up XML GUI
@@ -75,6 +77,10 @@ void MainWindow::setupActions()
 	actionCollection()->addAction("savescriptas", saveScriptAs);
 	connect(saveScriptAs, SIGNAL(triggered()), this, SLOT(saveScriptAs()));
 	saveScriptAs->setEnabled(false);
+
+	KAction *showTableDock = new KAction(tr("Show tables"), this);
+	showTableDock->setCheckable(true);
+	actionCollection()->addAction("showtables", showTableDock);
 
 }
 
