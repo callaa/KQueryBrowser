@@ -8,6 +8,7 @@
 
 #include "queryview.h"
 #include "queryresults.h"
+#include "stringbuilder.h"
 
 const int QueryView::DEFAULT_PAGESIZE;
 
@@ -25,7 +26,6 @@ QueryView::QueryView(QWidget *parent) :
 	qDebug() << "style:" << style;
 	setHtml("<html><head><link href=\"file://" + style + "\" rel=\"stylesheet\"><script type=\"text/javascript\" src=\"file://" + script + "\"></script><title>KQueryBrowser</title></head><body></body></html>");
 
-	// TODO
 	page()->currentFrame()->addToJavaScriptWindowObject("qbrowser", this);
 
 }
@@ -33,9 +33,9 @@ QueryView::QueryView(QWidget *parent) :
 void QueryView::initQueryBrowser(bool ok)
 {
 	if(!ok)
-		qDebug() << "Query browser load error!";
-
-	page()->currentFrame()->evaluateJavaScript("qb_init()");
+		qWarning("Query browser load error!");
+	else
+		page()->currentFrame()->evaluateJavaScript("qb_init()");
 }
 
 void QueryView::clear()
@@ -61,7 +61,7 @@ static QString esc(QString text) {
 
 static void makeTable(QWebElement parent, const QVector<Column> &columns, const ResultRows &rows, bool newtable)
 {
-	QStringList html;
+	StringBuilder html;
 
 	const QString TD("<td>");
 	const QString eTD("</dh>");
@@ -89,15 +89,7 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 	if(newtable)
 		html << "</tbody></table>";
 
-	QString table;
-	int len=0;
-	foreach(const QString q, html)
-		len += q.length();
-	table.reserve(len);
-	foreach(const QString q, html)
-		table.append(q);
-
-	parent.appendInside(table);
+	parent.appendInside(html.toString());
 
 }
 

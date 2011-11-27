@@ -24,6 +24,7 @@ set(kquerybrowser_SRCS
 	column.cpp
 	tablelistwidget.cpp
 	sqllineedit.cpp
+	stringbuilder.cpp
 )
 
 SET(kquerybrowser_RCCS res/resources.qrc)
