@@ -7,7 +7,7 @@
 #include <climits>
 
 #include "dbcontext.h"
-#include "queryresults.h"
+#include "../queryresults.h"
 
 DbContext::DbContext(QObject *target, QSqlDatabase &db, QObject *parent) :
 	QObject(parent), m_db(db), m_query(0), m_target(target)

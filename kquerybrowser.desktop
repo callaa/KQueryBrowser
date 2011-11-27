@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=KQueryBrowser
+Exec=kquerybrowser
+GenericName=Database Query Browser
+Type=Application
+X-KDE-StartupNotify=true
+Categories=Qt;KDE;Development;Database;
