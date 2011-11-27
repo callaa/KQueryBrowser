@@ -1,3 +1,4 @@
+#include <QDebug>
 #include <QSqlQuery>
 #include <QVariant>
 
@@ -9,19 +10,32 @@ MysqlConnection::MysqlConnection(QObject *parent) :
 {
 }
 
-void MysqlConnection::setExtraInfo(Table &table)
+QVector<Schema> MysqlConnection::schemas()
 {
-	QSqlQuery q("explain " + table.name(), m_db);
+	QVector<Table> tables;
 
-	// Explanation columns are: Field, type, null, key (PRI), default, extra
+	// Get tables
+	QSqlQuery q("show full tables", m_db);
 	while(q.next()) {
-		Column *c = table.column(q.value(0).toString());
-		if(c==0) {
-			qWarning(QString("setExtraInfo: No such column: %1").arg(q.value(0).toString()).toLatin1());
-			continue;
-		}
-		c->setExtraInfo(
-					q.value(3).toString() == "PRI", // PK
-					q.value(1).toString()); // type
+		tables.append(Table(q.value(0).toString(), QVector<Column>(), q.value(1).toString() == "VIEW" ? Table::VIEW : Table::TABLE));
 	}
+
+	// Get columns for tables
+	for(int i=0;i<tables.count();++i) {
+		Table &t = tables[i];
+		q.exec("explain " + t.name());
+
+		// Explanation columns are: Field, type, null, key (PRI), default, extra
+		while(q.next()) {
+			Column c(q.value(0).toString());
+			c.setType(q.value(1).toString());
+			c.setPk(q.value(3).toBool());
+			t.columns().append(c);
+		}
+	}
+
+	QVector<Schema> schemas(1);
+	schemas[0] = Schema(QString(), tables);
+	return schemas;
 }
+

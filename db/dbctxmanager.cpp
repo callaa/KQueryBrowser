@@ -35,25 +35,7 @@ void DbCtxManager::removeContext(QObject *forthis)
 	delete delctx;
 }
 
-void DbCtxManager::addTables(QVector<Table> &tables, const QStringList& names, Table::Type type) {
-	foreach(const QString& t, names) {
-		QSqlRecord r = m_connection->m_db.record(t);
-		QVector<Column> cols(r.count());
-		for(int i=0;i<r.count();++i)
-			cols[i] = Column(r.fieldName(i));
-
-		Table tbl(t, cols, type);
-		m_connection->setExtraInfo(tbl);
-		tables.append(tbl);
-	}
-}
-
 void DbCtxManager::getDbStructure()
 {
-	QVector<Table> tables;
-	addTables(tables, m_connection->m_db.tables(QSql::Tables), Table::TABLE);
-	addTables(tables, m_connection->m_db.tables(QSql::Views), Table::VIEW);
-	addTables(tables, m_connection->m_db.tables(QSql::SystemTables), Table::SYSTEMTABLE);
-
-	emit dbStructure(Database(tables));
+	emit dbStructure(Database(m_connection->schemas()));
 }

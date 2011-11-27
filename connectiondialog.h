@@ -22,6 +22,7 @@ public:
     ~ConnectionDialog();
 
 protected slots:
+	void typeSelected(int index);
 	void slotButtonClicked(int button);
 	void opened();
 	void failed(const QString& message);

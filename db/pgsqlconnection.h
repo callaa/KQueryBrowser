@@ -13,7 +13,7 @@ protected:
 	QString type() const { return QString("QPSQL"); }
 	int defaultPort() const { return 5432; }
 
-	void setExtraInfo(Table &table);
+	QVector<Schema> schemas();
 };
 
 #endif // PGSQLCONNECTION_H

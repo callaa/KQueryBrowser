@@ -1,3 +1,4 @@
+#include <QDebug>
 #include <QUrl>
 
 #include <KMessageBox>
@@ -10,6 +11,17 @@
 #include "db/mysqlconnection.h"
 #include "db/pgsqlconnection.h"
 
+struct ConType {
+	const char *name;
+	int page;
+};
+
+static const ConType CONTYPES[] = {
+	{"SQLite", 0},
+	{"MySQL", 1},
+	{"PostgreSQL", 1}
+};
+
 ConnectionDialog::ConnectionDialog(QWidget *parent) :
 	KDialog(parent),
 	m_ui(new Ui::ConnectionDialog),
@@ -18,7 +30,17 @@ ConnectionDialog::ConnectionDialog(QWidget *parent) :
 	setWindowTitle(tr("Open database connection"));
 	QWidget *mainwidget = new QWidget(this);
 	m_ui->setupUi(mainwidget);
+	for(unsigned int i=0;i<sizeof CONTYPES / sizeof CONTYPES[0];++i) {
+		m_ui->dbtype->addItem(CONTYPES[i].name);
+	}
+	connect(m_ui->dbtype, SIGNAL(currentIndexChanged(int)), this, SLOT(typeSelected(int)));
+
 	setMainWidget(mainwidget);
+}
+
+void ConnectionDialog::typeSelected(int index)
+{
+	m_ui->stackedWidget->setCurrentIndex(CONTYPES[index].page);
 }
 
 ConnectionDialog *ConnectionDialog::open(const QUrl& url)
@@ -28,13 +50,11 @@ ConnectionDialog *ConnectionDialog::open(const QUrl& url)
 	bool ok = false;
 	if(url.scheme() == "sqlite3") {
 		dlg->m_ui->dbtype->setCurrentIndex(0);
-		dlg->m_ui->stackedWidget->setCurrentIndex(0);
 		dlg->m_ui->filepath->setText(url.path());
 		// TODO check that the file exists
 		ok = !url.path().isEmpty();
-	} else if(url.scheme()=="mysql"){
-		dlg->m_ui->dbtype->setCurrentIndex(1);
-		dlg->m_ui->stackedWidget->setCurrentIndex(1);
+	} else if(url.scheme()=="mysql" || url.scheme()=="pgsql") {
+		dlg->m_ui->dbtype->setCurrentIndex(url.scheme()=="mysql" ? 1 : 2);
 		dlg->m_ui->dbname->setText(url.path().mid(1));
 		if(url.port()>0)
 			dlg->m_ui->serverport->setText(QString::number(url.port()));

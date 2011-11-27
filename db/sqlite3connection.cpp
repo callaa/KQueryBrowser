@@ -1,3 +1,4 @@
+#include <QDebug>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QVariant>
@@ -15,15 +16,34 @@ void Sqlite3Connection::prepareConnection(QSqlDatabase &db)
 	db.setDatabaseName(m_dbpath);
 }
 
-void Sqlite3Connection::setExtraInfo(Table &table)
+QVector<Schema> Sqlite3Connection::schemas()
 {
-	QSqlQuery q("pragma table_info(" + table.name() + ")", m_db);
+	QVector<Table> tables;
 
-	// Pragma columns are: column id (zero based), column name, column type, not-null, default value, primary key
+	QSqlQuery q("SELECT type, name FROM sqlite_master WHERE type IN ('table', 'view') ORDER BY type, name ASC", m_db);
 	while(q.next()) {
-		Column &c = table.columns()[q.value(0).toInt()];
-		c.setExtraInfo(
-					q.value(5).toBool(), // PK
-					q.value(2).toString()); // type
+		tables.append(Table(q.value(1).toString(), QVector<Column>(), q.value(0).toString() == "table" ? Table::TABLE : Table::VIEW));
 	}
+	// Add master table to the list too
+	tables.append(Table("sqlite_master", QVector<Column>(), Table::SYSTEMTABLE));
+
+	// Get column definitions
+	for(int i=0;i<tables.count();++i) {
+		Table &t = tables[i];
+
+		q.exec("pragma table_info(" + t.name() + ")");
+
+		// Pragma columns are: column id (zero based), column name, column type, not-null, default value, primary key
+		while(q.next()) {
+			Column c = Column(q.value(1).toString());
+			c.setType(q.value(2).toString());
+			c.setPk(q.value(5).toBool());
+			t.columns().append(c);
+		}
+	}
+
+	QVector<Schema> schemas(1);
+	schemas[0] = Schema(QString(), tables);
+	return schemas;
 }
+

@@ -37,21 +37,6 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <item>
-        <property name="text">
-         <string>SQLite3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MySQL</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>PostgreSQL</string>
-        </property>
-       </item>
       </widget>
      </item>
     </layout>
@@ -192,21 +177,5 @@
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>dbtype</sender>
-   <signal>activated(int)</signal>
-   <receiver>stackedWidget</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>201</x>
-     <y>13</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>303</x>
-     <y>127</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
 </ui>

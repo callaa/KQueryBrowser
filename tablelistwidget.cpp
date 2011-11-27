@@ -25,23 +25,33 @@ void TableListWidget::refreshTree(const Database &db)
 	QIcon iconKey(":/icons/key.png");
 
 	m_view->clear();
-	foreach(const Table& table, db.tables()) {
-		QTreeWidgetItem *t = new QTreeWidgetItem(m_view);
-		t->setText(0, table.name());
-		switch(table.type()) {
-			case Table::TABLE: t->setIcon(0, iconTable); break;
-			case Table::VIEW: t->setIcon(0, iconView); break;
-			case Table::SYSTEMTABLE: t->setIcon(0, iconSys); break;
+	const bool hasSchemas = !db.noSchemas();
+	foreach(const Schema& schema, db.schemas()) {
+		QTreeWidgetItem *s=0;
+		if(hasSchemas) {
+			s = new QTreeWidgetItem(m_view);
+			s->setText(0, schema.name());
+			s->setData(0, Qt::UserRole, 0);
 		}
-		t->setData(0, Qt::UserRole, 1);
 
-		foreach(const Column &col, table.columns()) {
-			QTreeWidgetItem *c = new QTreeWidgetItem(t);
-			c->setText(0, col.name());
-			c->setData(0, Qt::UserRole, 2);
-			if(col.isPrimaryKey())
-				c->setIcon(0, iconKey);
-			c->setToolTip(0, col.type());
+		foreach(const Table& table, schema.tables()) {
+			QTreeWidgetItem *t = s!=0 ? new QTreeWidgetItem(s) : new QTreeWidgetItem(m_view);
+			t->setText(0, table.name());
+			switch(table.type()) {
+				case Table::TABLE: t->setIcon(0, iconTable); break;
+				case Table::VIEW: t->setIcon(0, iconView); break;
+				case Table::SYSTEMTABLE: t->setIcon(0, iconSys); break;
+			}
+			t->setData(0, Qt::UserRole, 1);
+
+			foreach(const Column &col, table.columns()) {
+				QTreeWidgetItem *c = new QTreeWidgetItem(t);
+				c->setText(0, col.name());
+				c->setData(0, Qt::UserRole, 2);
+				if(col.isPrimaryKey())
+					c->setIcon(0, iconKey);
+				c->setToolTip(0, col.type());
+			}
 		}
 	}
 }
@@ -51,10 +61,20 @@ void TableListWidget::customContextMenu(const QPoint& point)
 	QTreeWidgetItem *item = m_view->itemAt(point);
 	if(item!=0) {
 		QString table;
-		if(item->data(0, Qt::UserRole)==1)
-			table = item->text(0);
-		else
-			table = item->parent()->text(0);
+		if(item->data(0, Qt::UserRole)==1) {
+			QTreeWidgetItem *schema = item->parent();
+			if(schema!=0)
+				table = schema->text(0) + "." + item->text(0);
+			else
+				table = item->text(0);
+		} else {
+			QTreeWidgetItem *tbl = item->parent();
+			QTreeWidgetItem *schema = tbl->parent();
+			if(schema!=0)
+				table = schema->text(0) + "." + tbl->text(0);
+			else
+				table = tbl->text(0);
+		}
 
 		QMenu menu;
 		menu.addAction("SELECT * FROM " + table);

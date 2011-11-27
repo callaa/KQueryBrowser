@@ -4,6 +4,8 @@
 #include <QThread>
 #include <QSqlDatabase>
 
+#include "../schema.h"
+
 class QSqlError;
 
 class DbCtxManager;
@@ -60,9 +62,9 @@ protected:
 	virtual void prepareConnection(QSqlDatabase &db) = 0;
 
 	/**
-	  \brief Set table metadata that is not available via QSqlRecord
+	  \brief Get schemas available in the current database
 	  */
-	virtual void setExtraInfo(Table& table) = 0;
+	virtual QVector<Schema> schemas() = 0;
 
 	/**
 	  \brief Return the Qt SQL driver type for this connection

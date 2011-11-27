@@ -1,17 +1,12 @@
 #include "column.h"
 
 Column::Column()
+	: m_pk(false)
 {
 }
 
 Column::Column(const QString &name)
-	: m_name(name)
+	: m_name(name), m_pk(false)
 {
 }
 
-
-void Column::setExtraInfo(bool pk, const QString& type)
-{
-	m_pk = pk;
-	m_type = type;
-}

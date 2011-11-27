@@ -14,7 +14,7 @@ protected:
 
 	void prepareConnection(QSqlDatabase &db);
 
-	void setExtraInfo(Table &table);
+	QVector<Schema> schemas();
 
 private:
 	QString m_dbpath;

@@ -2,9 +2,6 @@
 #define DBCTXMANAGER_H
 
 #include <QObject>
-#include <QVector>
-
-#include "table.h"
 
 class Connection;
 class Database;
@@ -24,7 +21,6 @@ public slots:
 	void getDbStructure();
 
 private:
-	void addTables(QVector<Table> &tables, const QStringList& names, Table::Type type);
 	Connection *m_connection;
 
 };

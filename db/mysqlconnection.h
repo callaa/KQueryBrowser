@@ -13,7 +13,7 @@ protected:
 	QString type() const { return QString("QMYSQL"); }
 	int defaultPort() const { return 3306; }
 
-	void setExtraInfo(Table &table);
+	QVector<Schema> schemas();
 };
 
 #endif // MYSQLCONNECTION_H

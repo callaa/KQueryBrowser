@@ -2,20 +2,33 @@
 #define DATABASE_H
 
 #include <QMetaType>
-#include "table.h"
+#include "schema.h"
 
 /**
   \brief Description of a database
+
+  A database contains (usually) one or more schemas, which contain
+  the tables.
+  For database types that do not support schemas, this object will
+  contain a single unnamed schema.
   */
 class Database
 {
 public:
     Database();
-	Database(const QVector<Table> tables);
+	Database(const QVector<Schema> schemas);
 
-	QVector<Table> tables() const { return m_tables; }
+	QVector<Schema> schemas() const { return m_schemas; }
+
+	/**
+	  \brief True if this database has doesn't support schemas.
+
+	  If this function returns true, schemas() contains just
+	  a single unnamed schema.
+	  */
+	bool noSchemas() const;
 private:
-	QVector<Table> m_tables;
+	QVector<Schema> m_schemas;
 };
 
 Q_DECLARE_METATYPE(Database)

@@ -30,15 +30,9 @@ public:
 	  */
 	const QString& type() const { return m_type; }
 
-	/**
-	  \brief Set system-dependant extra information
+	void setType(const QString& type) { m_type = type; }
 
-	  Set the information we can't get out of a normal QSqlRecord. The way this is
-	  got is DBMS specific.
-
-	  \param pk is the column a primary key?
-	  */
-	void setExtraInfo(bool pk, const QString& type);
+	void setPk(bool pk) { m_pk = pk; }
 
 private:
 	QString m_name;

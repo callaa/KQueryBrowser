@@ -19,6 +19,7 @@ set(kquerybrowser_SRCS
 	scriptwidget.cpp
 	queryresults.cpp
 	database.cpp
+	schema.cpp
 	table.cpp
 	column.cpp
 	tablelistwidget.cpp

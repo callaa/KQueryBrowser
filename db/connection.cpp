@@ -41,6 +41,7 @@ void Connection::run()
 		connect(ctxman, SIGNAL(dbStructure(Database)), this, SIGNAL(dbStructure(Database)));
 		emit opened();
 	} else {
+		qDebug() << "Connection error:" << m_db.lastError().text();
 		emit cannotOpen(m_db.lastError().text());
 		return;
 	}
