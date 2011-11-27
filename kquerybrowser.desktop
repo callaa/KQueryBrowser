@@ -2,6 +2,7 @@
 Name=KQueryBrowser
 Exec=kquerybrowser
 GenericName=Database Query Browser
+Icon=kquerybrowser
 Type=Application
 X-KDE-StartupNotify=true
 Categories=Qt;KDE;Development;Database;

@@ -20,6 +20,7 @@
 MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	: KXmlGuiWindow(parent), m_connection(connection), m_querytabs(0)
 {
+	setWindowIcon(KIcon("kquerybrowser"));
 	setupActions();
 
 	// Create tabs for query and script widgets. This is the central widget

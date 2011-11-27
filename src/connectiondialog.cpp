@@ -28,6 +28,7 @@ ConnectionDialog::ConnectionDialog(QWidget *parent) :
 	m_connection(0)
 {
 	setWindowTitle(tr("Open database connection"));
+	setWindowIcon(KIcon("kquerybrowser"));
 	QWidget *mainwidget = new QWidget(this);
 	m_ui->setupUi(mainwidget);
 	for(unsigned int i=0;i<sizeof CONTYPES / sizeof CONTYPES[0];++i) {

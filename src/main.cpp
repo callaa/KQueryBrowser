@@ -34,9 +34,9 @@ int main (int argc, char *argv[])
 				ki18n("(c) 2011"),
 				// Optional text shown in the About box.
 				// Can contain any information desired.
-				ki18n("Some text..."),
+				"",
 				// The program homepage string.
-				"http://luolamies.org/",
+				"http://luolamies.org/software/kquerybrowser",
 				// The bug report email address
 				"calle@luolamies.org");
 
