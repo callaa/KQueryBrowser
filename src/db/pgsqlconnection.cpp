@@ -18,7 +18,7 @@
 #include <QVariant>
 
 #include "pgsqlconnection.h"
-#include "../table.h"
+#include "../meta/table.h"
 
 PgsqlConnection::PgsqlConnection(QObject *parent) :
     ServerConnection(parent)

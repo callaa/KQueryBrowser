@@ -19,7 +19,7 @@
 #include <QVariant>
 
 #include "mysqlconnection.h"
-#include "../table.h"
+#include "../meta/table.h"
 
 MysqlConnection::MysqlConnection(QObject *parent) :
     ServerConnection(parent)

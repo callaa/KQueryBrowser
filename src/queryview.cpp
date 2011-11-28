@@ -23,7 +23,7 @@
 #include <KConfigGroup>
 
 #include "queryview.h"
-#include "queryresults.h"
+#include "db/queryresults.h"
 #include "valueview.h"
 #include "stringbuilder.h"
 

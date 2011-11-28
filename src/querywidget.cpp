@@ -23,7 +23,7 @@
 #include "querywidget.h"
 #include "queryview.h"
 #include "sqllineedit.h"
-#include "queryresults.h"
+#include "db/queryresults.h"
 
 QueryWidget::QueryWidget(QWidget *parent) :
 	QWidget(parent), m_moreavailable(false)

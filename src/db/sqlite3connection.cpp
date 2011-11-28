@@ -20,7 +20,7 @@
 #include <QVariant>
 
 #include "sqlite3connection.h"
-#include "../table.h"
+#include "../meta/table.h"
 
 Sqlite3Connection::Sqlite3Connection(const QString& dbpath, QObject *parent) :
 	Connection(parent), m_dbpath(dbpath)

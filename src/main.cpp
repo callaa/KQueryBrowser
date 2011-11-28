@@ -25,8 +25,8 @@
 #include <KLocale>
 
 #include "connectiondialog.h"
-#include "queryresults.h"
-#include "database.h"
+#include "db/queryresults.h"
+#include "meta/database.h"
 
 int main (int argc, char *argv[])
 {

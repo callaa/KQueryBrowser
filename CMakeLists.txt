@@ -4,9 +4,6 @@ include (KDE4Defaults)
 include_directories(${KDE4_INCLUDES})
 
 set(kquerybrowser_SRCS
-	src/main.cpp
-	src/mainwindow.cpp
-	src/connectiondialog.cpp
 	src/db/connection.cpp
 	src/db/sqlite3connection.cpp
 	src/db/serverconnection.cpp
@@ -14,15 +11,18 @@ set(kquerybrowser_SRCS
 	src/db/pgsqlconnection.cpp
 	src/db/dbctxmanager.cpp
 	src/db/dbcontext.cpp
+	src/db/queryresults.cpp
+	src/meta/database.cpp
+	src/meta/schema.cpp
+	src/meta/table.cpp
+	src/meta/column.cpp
+	src/main.cpp
+	src/mainwindow.cpp
+	src/connectiondialog.cpp
 	src/queryview.cpp
 	src/valueview.cpp
 	src/querywidget.cpp
 	src/scriptwidget.cpp
-	src/queryresults.cpp
-	src/database.cpp
-	src/schema.cpp
-	src/table.cpp
-	src/column.cpp
 	src/tablelistwidget.cpp
 	src/sqllineedit.cpp
 	src/stringbuilder.cpp

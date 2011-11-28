@@ -20,7 +20,7 @@
 #include <QMenu>
 
 #include "tablelistwidget.h"
-#include "database.h"
+#include "meta/database.h"
 
 TableListWidget::TableListWidget(QWidget *parent) :
 	QDockWidget(tr("Tables"), parent)

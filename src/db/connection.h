@@ -20,7 +20,7 @@
 #include <QThread>
 #include <QSqlDatabase>
 
-#include "../schema.h"
+#include "../meta/schema.h"
 
 class QSqlError;
 

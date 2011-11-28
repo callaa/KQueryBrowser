@@ -22,7 +22,7 @@
 #include <QVector>
 #include <QSharedDataPointer>
 
-#include "column.h"
+#include "../meta/column.h"
 
 class DbContext;
 

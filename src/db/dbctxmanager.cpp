@@ -21,7 +21,7 @@
 #include "dbctxmanager.h"
 #include "dbcontext.h"
 #include "connection.h"
-#include "../database.h"
+#include "../meta/database.h"
 
 DbCtxManager::DbCtxManager(Connection *connection) :
 	QObject(), m_connection(connection)
