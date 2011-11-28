@@ -81,7 +81,8 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 	const QString TD("<td>");
 	const QString eTD("</dh>");
 	const QString TR("<tr>");
-	const QString eTR("</tr>");
+	const QString eTR("</tr>\n");
+	const QString NULLVAL("<b>NULL</b>");
 
 	if(newtable) {
 		const QString TH("<th>");
@@ -90,13 +91,16 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 		foreach(const Column& c, columns) {
 			html << TH << esc(c.name()) << eTH;
 		}
-		html << "</tr></thead><tbody>";
+		html << "</tr></thead><tbody>\n";
 	}
 
 	foreach(const ResultRow row, rows) {
 		html << TR;
 		foreach(const QVariant& c, row) {
-			html << TD << esc(c.toString()) << eTD;
+			if(c.isNull())
+				html << TD << NULLVAL << eTD;
+			else
+				html << TD << esc(c.toString()) << eTD;
 		}
 		html << eTR;
 	}
