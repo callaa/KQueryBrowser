@@ -50,6 +50,9 @@ public:
 
 	/**
 	  \brief Request emission of latest dbStructure
+	  
+	  This function just emits the needDbStructure signal from the
+	  context of this object.
 	  */
 	void getDbStructure();
 
@@ -60,10 +63,10 @@ signals:
 	//! Couldn't open connection
 	void cannotOpen(const QString& message);
 
-	//! Internal use only: Request new context for an object from the context manager
+	//! Request new context for an object from the context manager
 	void needNewContext(QObject *forthis);
 
-	//! Internal use only: Request new dbStructure
+	//! Request new dbStructure
 	void needDbStructure();
 
 	//! Updated database structure info

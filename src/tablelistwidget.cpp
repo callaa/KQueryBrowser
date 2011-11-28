@@ -75,6 +75,8 @@ void TableListWidget::refreshTree(const Database &db)
 void TableListWidget::customContextMenu(const QPoint& point)
 {
 	QTreeWidgetItem *item = m_view->itemAt(point);
+	QMenu menu;
+
 	if(item!=0) {
 		QString table;
 		if(item->data(0, Qt::UserRole)==1) {
@@ -92,7 +94,6 @@ void TableListWidget::customContextMenu(const QPoint& point)
 				table = tbl->text(0);
 		}
 
-		QMenu menu;
 		menu.addAction("SELECT * FROM " + table);
 		menu.addAction("SELECT COUNT(*) FROM " + table);
 
@@ -102,8 +103,17 @@ void TableListWidget::customContextMenu(const QPoint& point)
 			menu.addAction("SELECT DISTINCT " + item->text(0) + " FROM " + table);
 		}
 
-		QAction *a = menu.exec(m_view->mapToGlobal(point));
-		if(a!=0)
+	}
+
+	if(!menu.isEmpty())
+		menu.addSeparator();
+	QAction *refreshAct = menu.addAction("Refresh");
+
+	QAction *a = menu.exec(m_view->mapToGlobal(point));
+	if(a!=0) {
+		if(a==refreshAct)
+			emit refresh();
+		else
 			emit runQuery(a->text());
 	}
 }

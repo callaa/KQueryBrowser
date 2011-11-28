@@ -58,6 +58,7 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	QAction *showtables = actionCollection()->action("showtables");
 	connect(tablelist, SIGNAL(visibilityChanged(bool)), showtables, SLOT(setChecked(bool)));
 	connect(showtables, SIGNAL(triggered(bool)), tablelist, SLOT(setVisible(bool)));
+	connect(tablelist, SIGNAL(refresh()), m_connection, SIGNAL(needDbStructure()));
 	m_connection->getDbStructure();
 
 	// Set up XML GUI

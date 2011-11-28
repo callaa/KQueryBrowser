@@ -30,6 +30,7 @@ public:
 
 signals:
 	void runQuery(const QString& query);
+	void refresh();
 
 public slots:
 	void refreshTree(const Database& db);
