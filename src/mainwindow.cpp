@@ -36,6 +36,7 @@
 MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	: KXmlGuiWindow(parent), m_connection(connection), m_querytabs(0)
 {
+	setAttribute(Qt::WA_DeleteOnClose, true);
 	setWindowIcon(KIcon("kquerybrowser"));
 	setupActions();
 
