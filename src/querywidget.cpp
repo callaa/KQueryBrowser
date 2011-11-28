@@ -70,6 +70,11 @@ void QueryWidget::queryResults(const QueryResults &results)
 	m_view->showResults(results);
 }
 
+void QueryWidget::clearResults()
+{
+	m_view->clear();
+}
+
 void QueryWidget::showEvent(QShowEvent *e)
 {
 	m_query->setFocus();

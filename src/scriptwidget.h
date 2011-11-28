@@ -58,6 +58,7 @@ signals:
 public slots:
 	void executeQuery();
 	void queryResults(const QueryResults& results);
+	void clearResults();
 
 protected slots:
 	void scriptModifiedChanged();

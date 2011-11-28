@@ -115,13 +115,18 @@ void ScriptWidget::executeQuery()
 	m_resultview->clear();
 	m_resultview->startNewQuery(QString());
 
-	// TODO this only executes the first statement (sqlite oddity?)
+	// TODO this only executes the first statement on sqlite
 	emit doQuery(m_document->text(), 0);
 }
 
 void ScriptWidget::queryResults(const QueryResults& results)
 {
 	m_resultview->showResults(results);
+}
+
+void ScriptWidget::clearResults()
+{
+	m_resultview->clear();
 }
 
 bool ScriptWidget::save()

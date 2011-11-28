@@ -59,6 +59,9 @@ protected slots:
 	//! The "content modified" flag on a tab has changed
 	void tabNameChange(const QString& name);
 
+	//! Clear the results view of the current tab
+	void clearResults();
+
 	void currentTabChanged(int index);
 
 private:

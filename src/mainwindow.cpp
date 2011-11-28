@@ -101,6 +101,10 @@ void MainWindow::setupActions()
 	showTableDock->setCheckable(true);
 	actionCollection()->addAction("showtables", showTableDock);
 
+
+	KAction *clearResultView = new KAction(tr("Clear"), this);
+	actionCollection()->addAction("resultsclear", clearResultView);
+	connect(clearResultView, SIGNAL(triggered()), this, SLOT(clearResults()));
 }
 
 void MainWindow::currentTabChanged(int index)
@@ -180,6 +184,11 @@ void MainWindow::closeTab(int index)
 	delete widget;
 	if(m_tabs->count()==1)
 		m_tabs->setTabsClosable(false);
+}
+
+void MainWindow::clearResults()
+{
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "clearResults", Qt::DirectConnection);
 }
 
 void MainWindow::saveScript()

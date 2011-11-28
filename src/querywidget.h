@@ -45,6 +45,7 @@ signals:
 
 public slots:
 	void queryResults(const QueryResults& results);
+	void clearResults();
 
 protected slots:
 
