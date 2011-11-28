@@ -61,7 +61,7 @@ QVector<Schema> PgsqlConnection::schemas()
 		for(int i=0;i<schemas.count();++i) {
 			Schema &s = schemas[i];
 			if(s.name() == schema) {
-				for(int j=0;j<s.tables().count();++i) {
+				for(int j=0;j<s.tables().count();++j) {
 					Table &t = s.tables()[j];
 					if(t.name() == table) {
 						for(int k=0;k<t.columns().count();++k) {
