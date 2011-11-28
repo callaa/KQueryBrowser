@@ -18,8 +18,14 @@
 #define QUERYVIEW_H
 
 #include <QWebView>
+#include <QVector>
+#include <QVariant>
+#include <QPair>
 
 class QueryResults;
+
+// Pair of column name and data
+typedef QPair<QString,QVariant> BigValue;
 
 class QueryView : public QWebView
 {
@@ -52,6 +58,7 @@ signals:
 public slots:
 	void queryGetMore();
 	void queryGetAll();
+	void showBigResult(int index);
 
 protected slots:
 	void initQueryBrowser(bool ok);
@@ -65,6 +72,12 @@ private:
 
 	//! Number of result rows expected (-1 if unknown)
 	int m_resultsexpected;
+
+	//! Result entries too big to display in the table view
+	QVector<BigValue> m_bigresults;
+
+	//! Column names of the last query
+	QStringList m_columnnames;
 };
 
 #endif // QUERYVIEW_H

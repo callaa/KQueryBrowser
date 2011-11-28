@@ -65,6 +65,13 @@ td {
 	white-space: nowrap
 }
 
+/* Truncated cells with link to full content */
+td>a {
+	color: #000;
+}
+
+td>a:after { content: "..." }
+
 /* We use this to mark up NULLs */
 td>b {
 	background: #ccc;

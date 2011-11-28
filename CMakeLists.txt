@@ -15,6 +15,7 @@ set(kquerybrowser_SRCS
 	src/db/dbctxmanager.cpp
 	src/db/dbcontext.cpp
 	src/queryview.cpp
+	src/valueview.cpp
 	src/querywidget.cpp
 	src/scriptwidget.cpp
 	src/queryresults.cpp

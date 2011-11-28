@@ -24,6 +24,7 @@
 
 #include "queryview.h"
 #include "queryresults.h"
+#include "valueview.h"
 #include "stringbuilder.h"
 
 const int QueryView::DEFAULT_PAGESIZE;
@@ -55,6 +56,7 @@ void QueryView::initQueryBrowser(bool ok)
 
 void QueryView::clear()
 {
+	m_bigresults.clear();
 	foreach(QWebElement e, page()->currentFrame()->findAllElements("div.query"))
 		e.removeFromDocument();
 }
@@ -74,7 +76,7 @@ static QString esc(QString text) {
 	return text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
 }
 
-static void makeTable(QWebElement parent, const QVector<Column> &columns, const ResultRows &rows, bool newtable)
+static void makeTable(QWebElement parent, const QVector<Column> &columns, const ResultRows &rows, bool newtable, QVector<BigValue> &bigresults, QStringList &columnnames)
 {
 	StringBuilder html;
 
@@ -88,19 +90,32 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 		const QString TH("<th>");
 		const QString eTH("</th>");
 		html << "<table><thead><tr>";
+		columnnames.clear();
 		foreach(const Column& c, columns) {
 			html << TH << esc(c.name()) << eTH;
+			columnnames << c.name();
 		}
 		html << "</tr></thead><tbody>\n";
 	}
 
 	foreach(const ResultRow row, rows) {
 		html << TR;
+		int col=0;
 		foreach(const QVariant& c, row) {
-			if(c.isNull())
+			if(c.isNull()) {
 				html << TD << NULLVAL << eTD;
-			else
-				html << TD << esc(c.toString()) << eTD;
+			} else {
+				QString val = c.toString();
+				if(val.length() > 40) {
+					// TODO configurable limit
+					bigresults.append(BigValue(columnnames.at(col),c));
+					val.truncate(40);
+					html << TD << "<a href=\"javascript:qbrowser.showBigResult(" << QString::number(bigresults.count()-1) << ")\">" << esc(val) << "</a>" << eTD;
+				} else {
+					html << TD << esc(val) << eTD;
+				}
+			}
+			++col;
 		}
 		html << eTR;
 	}
@@ -121,10 +136,10 @@ void QueryView::showResults(const QueryResults &results)
 			m_resultsgot += results.rows().count();
 			// We got results. Format them in a table nicely.
 			if(results.isContinuation()) {
-				makeTable(w->findFirstElement("div.query:last-child>table>tbody"), results.columns(), results.rows(), false);
+				makeTable(w->findFirstElement("div.query:last-child>table>tbody"), results.columns(), results.rows(), false, m_bigresults, m_columnnames);
 			} else {
 				m_resultsexpected = results.rowCount();
-				makeTable(w->findFirstElement("div.query:last-child"), results.columns(), results.rows(), true);
+				makeTable(w->findFirstElement("div.query:last-child"), results.columns(), results.rows(), true, m_bigresults, m_columnnames);
 			}
 		} else {
 			// A non-select statement was executed succesfully
@@ -140,6 +155,19 @@ void QueryView::showResults(const QueryResults &results)
 		page()->currentFrame()->evaluateJavaScript(QString("qb_partialquery(\"query-%1\", %2, %3)").arg(m_querycount).arg(m_resultsgot).arg(m_resultsexpected));
 	else
 		page()->currentFrame()->evaluateJavaScript(QString("qb_endquery(\"query-%1\", %2)").arg(m_querycount).arg(m_resultsgot));
+}
+
+void QueryView::showBigResult(int index)
+{
+	if(index<0 || index>= m_bigresults.count()) {
+		qWarning("Big result index %d out of range [0..%d]", index, m_bigresults.count()-1);
+		return;
+	}
+
+	const BigValue &bv = m_bigresults.at(index);
+	ValueView *view = new ValueView(bv.second, this);
+	view->setCaption(bv.first);
+	view->show();
 }
 
 void QueryView::queryGetMore()
