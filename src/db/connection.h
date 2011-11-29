@@ -23,10 +23,10 @@
 #include "../meta/schema.h"
 
 class QSqlError;
+class QStringList;
 
 class DbCtxManager;
 class Database;
-class Table;
 
 /**
   \brief A database connection thread.
@@ -57,6 +57,14 @@ public:
 	void getDbStructure();
 
 	/**
+	  \brief Request emission of latest dbList
+
+	  This function just emits the needDbList signal from the
+	  context of this object.
+	  */
+	void getDbList();
+
+	/**
 	  \brief Get the name of the connection
 	  */
 	virtual QString name() const = 0;
@@ -74,21 +82,38 @@ signals:
 	//! Request new dbStructure
 	void needDbStructure();
 
+	//! Request new dbList
+	void needDbList();
+
 	//! Updated database structure info
 	void dbStructure(const Database& tables);
+
+	//! Updated database list
+	void dbList(const QStringList& databases);
 
 protected:
 	void run();
 
 	/**
 	  \brief Set connection properties
+
+	  This should be called from the main thread before starting this thread.
 	  */
 	virtual void prepareConnection(QSqlDatabase &db) = 0;
 
 	/**
 	  \brief Get schemas available in the current database
+
+	  This should be called only from this thread.
 	  */
 	virtual QVector<Schema> schemas() = 0;
+
+	/**
+	  \brief Get a list of databases the user can access
+
+	  This should be called only from this thread.
+	  */
+	virtual QStringList databases() = 0;
 
 	/**
 	  \brief Return the Qt SQL driver type for this connection

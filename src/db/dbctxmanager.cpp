@@ -55,3 +55,8 @@ void DbCtxManager::getDbStructure()
 {
 	emit dbStructure(Database(m_connection->schemas()));
 }
+
+void DbCtxManager::getDbList()
+{
+	emit dbList(m_connection->databases());
+}

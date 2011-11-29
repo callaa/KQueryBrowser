@@ -43,6 +43,11 @@ void Connection::getDbStructure()
 	emit needDbStructure();
 }
 
+void Connection::getDbList()
+{
+	emit needDbList();
+}
+
 void Connection::run()
 {
 	qDebug() << "Opening database connection" << m_count;
@@ -55,7 +60,9 @@ void Connection::run()
 		DbCtxManager *ctxman = new DbCtxManager(this);
 		connect(this, SIGNAL(needNewContext(QObject*)), ctxman, SLOT(createContext(QObject*)), Qt::BlockingQueuedConnection);
 		connect(this, SIGNAL(needDbStructure()), ctxman, SLOT(getDbStructure()), Qt::QueuedConnection);
+		connect(this, SIGNAL(needDbList()), ctxman, SLOT(getDbList()), Qt::QueuedConnection);
 		connect(ctxman, SIGNAL(dbStructure(Database)), this, SIGNAL(dbStructure(Database)), Qt::QueuedConnection);
+		connect(ctxman, SIGNAL(dbList(QStringList)), this, SIGNAL(dbList(QStringList)), Qt::QueuedConnection);
 		emit opened();
 
 		exec();

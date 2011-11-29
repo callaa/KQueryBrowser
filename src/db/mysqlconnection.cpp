@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QDebug>
 #include <QSqlQuery>
 #include <QVariant>
+#include <QStringList>
 
 #include "mysqlconnection.h"
 #include "../meta/table.h"
@@ -55,3 +55,11 @@ QVector<Schema> MysqlConnection::schemas()
 	return schemas;
 }
 
+QStringList MysqlConnection::databases()
+{
+	QSqlQuery q("SHOW DATABASES", m_db);
+	QStringList list;
+	while(q.next())
+		list << q.value(0).toString();
+	return list;
+}

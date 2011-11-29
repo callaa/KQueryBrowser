@@ -30,6 +30,7 @@ protected:
 	int defaultPort() const { return 3306; }
 
 	QVector<Schema> schemas();
+	QStringList databases();
 };
 
 #endif // MYSQLCONNECTION_H

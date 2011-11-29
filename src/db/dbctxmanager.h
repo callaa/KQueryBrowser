@@ -19,6 +19,8 @@
 
 #include <QObject>
 
+class QStringList;
+
 class Connection;
 class Database;
 
@@ -30,11 +32,13 @@ public:
 
 signals:
 	void dbStructure(const Database& db);
+	void dbList(const QStringList& databases);
 
 public slots:
 	void createContext(QObject *forthis);
 	void removeContext(QObject *forthis);
 	void getDbStructure();
+	void getDbList();
 
 private:
 	Connection *m_connection;

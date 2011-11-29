@@ -32,6 +32,7 @@ protected:
 	void prepareConnection(QSqlDatabase &db);
 
 	QVector<Schema> schemas();
+	QStringList databases();
 
 private:
 	QString m_dbpath;

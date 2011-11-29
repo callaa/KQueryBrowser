@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QDebug>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QVariant>
+#include <QStringList>
 
 #include "sqlite3connection.h"
 #include "../meta/table.h"
@@ -71,3 +71,10 @@ QVector<Schema> Sqlite3Connection::schemas()
 	return schemas;
 }
 
+QStringList Sqlite3Connection::databases()
+{
+	// TODO return list of attached databases
+	QStringList list;
+	list << name();
+	return list;
+}

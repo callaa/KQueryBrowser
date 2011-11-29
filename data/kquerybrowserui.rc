@@ -19,6 +19,7 @@
 	</Menu>
 	<Menu name="settings">
 		<Action name="showtables" />
+		<Action name="showdatabases" />
 	</Menu>
 </MenuBar>
 

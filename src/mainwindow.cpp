@@ -32,6 +32,7 @@
 #include "querywidget.h"
 #include "scriptwidget.h"
 #include "tablelistwidget.h"
+#include "databaselistwidget.h"
 
 MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	: KXmlGuiWindow(parent), m_connection(connection), m_querytabs(0)
@@ -57,11 +58,25 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	addDockWidget(Qt::RightDockWidgetArea, tablelist);
 	connect(m_connection, SIGNAL(dbStructure(Database)), tablelist, SLOT(refreshTree(Database)));
 	connect(tablelist, SIGNAL(runQuery(QString)), this, SLOT(runQuery(QString)));
+	m_connection->getDbStructure();
+
 	QAction *showtables = actionCollection()->action("showtables");
 	connect(tablelist, SIGNAL(visibilityChanged(bool)), showtables, SLOT(setChecked(bool)));
 	connect(showtables, SIGNAL(triggered(bool)), tablelist, SLOT(setVisible(bool)));
 	connect(tablelist, SIGNAL(refresh()), m_connection, SIGNAL(needDbStructure()));
-	m_connection->getDbStructure();
+
+	// Create the database list dock widget
+	DatabaseListWidget *dblist = new DatabaseListWidget(m_connection->name(), this);
+	dblist->setObjectName("databaselist");
+	dblist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	addDockWidget(Qt::RightDockWidgetArea, dblist);
+	connect(m_connection, SIGNAL(dbList(QStringList)), dblist, SLOT(refreshList(QStringList)));
+	m_connection->getDbList();
+
+	QAction *showdbs = actionCollection()->action("showdatabases");
+	connect(dblist, SIGNAL(visibilityChanged(bool)), showdbs, SLOT(setChecked(bool)));
+	connect(showdbs, SIGNAL(triggered(bool)), dblist, SLOT(setVisible(bool)));
+	connect(dblist, SIGNAL(refresh()), m_connection, SIGNAL(needDbList()));
 
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
@@ -101,6 +116,10 @@ void MainWindow::setupActions()
 	KAction *showTableDock = new KAction(tr("Show tables"), this);
 	showTableDock->setCheckable(true);
 	actionCollection()->addAction("showtables", showTableDock);
+
+	KAction *showDatabaseDock = new KAction(tr("Show databases"), this);
+	showDatabaseDock->setCheckable(true);
+	actionCollection()->addAction("showdatabases", showDatabaseDock);
 
 
 	KAction *clearResultView = new KAction(tr("Clear"), this);

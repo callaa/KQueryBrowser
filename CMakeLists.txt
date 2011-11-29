@@ -24,6 +24,7 @@ set(kquerybrowser_SRCS
 	src/querywidget.cpp
 	src/scriptwidget.cpp
 	src/tablelistwidget.cpp
+	src/databaselistwidget.cpp
 	src/sqllineedit.cpp
 	src/stringbuilder.cpp
 )

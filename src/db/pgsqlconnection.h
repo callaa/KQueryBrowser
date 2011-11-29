@@ -30,6 +30,7 @@ protected:
 	int defaultPort() const { return 5432; }
 
 	QVector<Schema> schemas();
+	QStringList databases();
 };
 
 #endif // PGSQLCONNECTION_H

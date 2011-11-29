@@ -16,6 +16,7 @@
 //
 #include <QSqlQuery>
 #include <QVariant>
+#include <QStringList>
 
 #include "pgsqlconnection.h"
 #include "../meta/table.h"
@@ -81,3 +82,11 @@ QVector<Schema> PgsqlConnection::schemas()
 	return schemas;
 }
 
+QStringList PgsqlConnection::databases()
+{
+	QStringList list;
+	QSqlQuery q("SELECT datname FROM pg_database WHERE datallowconn=true ORDER BY datname ASC", m_db);
+	while(q.next())
+		list << q.value(0).toString();
+	return list;
+}
