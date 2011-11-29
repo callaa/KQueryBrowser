@@ -77,7 +77,7 @@ void TableListWidget::customContextMenu(const QPoint& point)
 	QTreeWidgetItem *item = m_view->itemAt(point);
 	QMenu menu;
 
-	if(item!=0) {
+	if(item!=0 && item->data(0, Qt::UserRole)!=0) {
 		QString table;
 		if(item->data(0, Qt::UserRole)==1) {
 			QTreeWidgetItem *schema = item->parent();
