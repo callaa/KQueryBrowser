@@ -25,6 +25,7 @@ class Sqlite3Connection : public Connection
 public:
 	explicit Sqlite3Connection(const QString& dbpath, QObject *parent = 0);
 
+	QString name() const;
 protected:
 	QString type() const { return QString("QSQLITE"); }
 

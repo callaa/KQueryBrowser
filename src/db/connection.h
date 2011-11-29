@@ -56,6 +56,11 @@ public:
 	  */
 	void getDbStructure();
 
+	/**
+	  \brief Get the name of the connection
+	  */
+	virtual QString name() const = 0;
+
 signals:
 	//! The database connection was opened succesfully
 	void opened();

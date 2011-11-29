@@ -31,6 +31,7 @@ public:
 	void setPassword(const QString& password) { m_password = password; }
 	void setDatabase(const QString& database) { m_database = database; }
 
+	QString name() const { return m_database; }
 protected:
 	void prepareConnection(QSqlDatabase &db);
 	virtual int defaultPort() const = 0;

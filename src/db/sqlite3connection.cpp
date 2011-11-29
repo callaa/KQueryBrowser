@@ -32,6 +32,14 @@ void Sqlite3Connection::prepareConnection(QSqlDatabase &db)
 	db.setDatabaseName(m_dbpath);
 }
 
+QString Sqlite3Connection::name() const
+{
+	int slash = m_dbpath.lastIndexOf('/');
+	if(slash<0)
+		return m_dbpath;
+	return m_dbpath.mid(slash+1);
+}
+
 QVector<Schema> Sqlite3Connection::schemas()
 {
 	QVector<Table> tables;

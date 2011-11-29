@@ -38,6 +38,7 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 {
 	setAttribute(Qt::WA_DeleteOnClose, true);
 	setWindowIcon(KIcon("kquerybrowser"));
+	setCaption(connection->name());
 	setupActions();
 
 	// Create tabs for query and script widgets. This is the central widget
