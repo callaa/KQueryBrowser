@@ -14,7 +14,7 @@
 		<Action name="savescript" />
 		<Action name="savescriptas" />
 	</Menu>
-	<Menu name="results">
+	<Menu name="results"><text>Results</text>
 		<Action name="resultsclear" />
 	</Menu>
 	<Menu name="settings">
