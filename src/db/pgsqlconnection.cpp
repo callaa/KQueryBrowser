@@ -20,20 +20,33 @@
 
 #include "pgsqlconnection.h"
 #include "../meta/table.h"
+#include "../stringbuilder.h"
 
 PgsqlConnection::PgsqlConnection(QObject *parent) :
     ServerConnection(parent)
 {
 }
 
+static QString typestr(const QString &datatype, const QVariant &maxcharlen)
+{
+	// TODO add more type info (numeric precision etc.)
+	StringBuilder type;
+	type << datatype;
+	if(!maxcharlen.isNull())
+		type << QString(" (%1)").arg(maxcharlen.toInt());
+	return type.toString();
+}
+
 QVector<Schema> PgsqlConnection::schemas()
 {
-	QSqlQuery q("SELECT table_schema, table_name, column_name FROM information_schema.columns ORDER BY table_schema, table_name ASC", m_db);
+	QSqlQuery q("SELECT table_schema, table_name, column_name, data_type,character_maximum_length FROM information_schema.columns ORDER BY table_schema, table_name ASC", m_db);
 	QVector<Schema> schemas;
 	while(q.next()) {
 		QString sname = q.value(0).toString();
 		QString tname = q.value(1).toString();
 		QString cname = q.value(2).toString();
+		QString ctype = q.value(3).toString();
+		QVariant cmaxlen = q.value(4);
 
 		// Find schema
 		Schema *schema=0;
@@ -49,6 +62,7 @@ QVector<Schema> PgsqlConnection::schemas()
 
 		// Add column
 		table->columns().append(cname);
+		table->columns().last().setType(typestr(ctype, cmaxlen));
 	}
 
 	// Get keys (TODO identify type)
