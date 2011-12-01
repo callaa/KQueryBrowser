@@ -85,11 +85,16 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
 
-	new KBookmarkMenu(
+	KMenu *bmmenu = findChild<KMenu*>("bookmarks");
+	KBookmarkMenu *bmm = new KBookmarkMenu(
 			Bookmarks::manager(),
 			this,
-			findChild<KMenu*>("bookmarks"),
+			bmmenu,
 			actionCollection());
+	// Note. bookmark menu parent is not set automatically.
+	// (This weird behavior can't be fixed without breaking konqueror
+	// and possibly some other apps. It will probably be fixed in KDE5)
+	bmm->setParent(bmmenu);
 }
 
 MainWindow::~MainWindow()
