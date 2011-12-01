@@ -62,7 +62,7 @@ public slots:
 	void runQuery(const QString& query);
 
 	//! Show new connection dialog
-	void newConnection();
+	void newConnection(const QUrl& url = QUrl());
 
 protected slots:
 	//! Close a tab

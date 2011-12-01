@@ -147,9 +147,9 @@ void MainWindow::setupActions()
 	connect(newConnection, SIGNAL(triggered()), this, SLOT(newConnection()));
 }
 
-void MainWindow::newConnection()
+void MainWindow::newConnection(const QUrl& url)
 {
-	// TODO
+	ConnectionDialog::open(url);
 }
 
 QString MainWindow::currentTitle() const
@@ -167,8 +167,7 @@ void MainWindow::openBookmark(const KBookmark& bookmark, Qt::MouseButtons mb, Qt
 {
 	Q_UNUSED(mb);
 	Q_UNUSED(km);
-	qDebug() << bookmark.text();
-	// TODO open new connection
+	newConnection(bookmark.url());
 }
 
 void MainWindow::currentTabChanged(int index)

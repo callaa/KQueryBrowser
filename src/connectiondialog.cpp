@@ -112,7 +112,9 @@ ConnectionDialog *ConnectionDialog::open(const QUrl& url)
 {
 	ConnectionDialog *dlg = new ConnectionDialog();
 
-	bool ok = dlg->setUrl(url);
+	bool ok = false;
+	if(!url.isEmpty())
+		ok = dlg->setUrl(url);
 	dlg->show();
 
 	if(ok)
