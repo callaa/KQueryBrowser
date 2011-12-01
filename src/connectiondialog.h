@@ -18,6 +18,7 @@
 #define CONNECTIONDIALOG_H
 
 #include <KDialog>
+#include <KBookmarkOwner>
 
 namespace Ui {
     class ConnectionDialog;
@@ -26,7 +27,7 @@ namespace Ui {
 class Connection;
 class QUrl;
 
-class ConnectionDialog : public KDialog
+class ConnectionDialog : public KDialog, public KBookmarkOwner
 {
     Q_OBJECT
 
@@ -36,6 +37,16 @@ public:
 	static ConnectionDialog *open(const QUrl& url);
 
     ~ConnectionDialog();
+
+	bool enableOption(BookmarkOption option) const { Q_UNUSED(option); return false; }
+	void openBookmark(const KBookmark &bm, Qt::MouseButtons mb, Qt::KeyboardModifiers km);
+
+	/**
+	 \brief Set the dialog fields from an URL
+	 \param url the URL
+	 \return true if all required fields were set
+	 */
+	bool setUrl(const QUrl& url);
 
 protected slots:
 	void typeSelected(int index);

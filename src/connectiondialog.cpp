@@ -18,14 +18,15 @@
 #include <QUrl>
 
 #include <KMessageBox>
+#include <KBookmarkMenu>
+#include <KActionCollection>
 
 #include "connectiondialog.h"
 #include "ui_connectiondialog.h"
 #include "mainwindow.h"
+#include "bookmarks.h"
 
-#include "db/sqlite3connection.h"
-#include "db/mysqlconnection.h"
-#include "db/pgsqlconnection.h"
+#include "db/connection.h"
 
 struct ConType {
 	const char *name;
@@ -43,8 +44,10 @@ ConnectionDialog::ConnectionDialog(QWidget *parent) :
 	m_ui(new Ui::ConnectionDialog),
 	m_connection(0)
 {
-	setWindowTitle(tr("Open database connection"));
+	setAttribute(Qt::WA_DeleteOnClose, true);
+	setCaption(tr("Open database connection"));
 	setWindowIcon(KIcon("kquerybrowser"));
+
 	QWidget *mainwidget = new QWidget(this);
 	m_ui->setupUi(mainwidget);
 	for(unsigned int i=0;i<sizeof CONTYPES / sizeof CONTYPES[0];++i) {
@@ -52,7 +55,19 @@ ConnectionDialog::ConnectionDialog(QWidget *parent) :
 	}
 	connect(m_ui->dbtype, SIGNAL(currentIndexChanged(int)), this, SLOT(typeSelected(int)));
 
+	KMenu *bmm = new KMenu(this);
+	KActionCollection *bmacts = new KActionCollection(this);
+	KBookmarkMenu *bm = new KBookmarkMenu(Bookmarks::manager(), this, bmm, bmacts);
+	bm->setParent(bmm);
+	m_ui->bookmarkbtn->setMenu(bmm);
+	m_ui->bookmarkbtn->setIcon(KIcon("bookmarks"));
+
 	setMainWidget(mainwidget);
+}
+
+ConnectionDialog::~ConnectionDialog()
+{
+	delete m_ui;
 }
 
 void ConnectionDialog::typeSelected(int index)
@@ -60,41 +75,50 @@ void ConnectionDialog::typeSelected(int index)
 	m_ui->stackedWidget->setCurrentIndex(CONTYPES[index].page);
 }
 
-ConnectionDialog *ConnectionDialog::open(const QUrl& url)
+void ConnectionDialog::openBookmark(const KBookmark &bm, Qt::MouseButtons mb, Qt::KeyboardModifiers km)
 {
-	ConnectionDialog *dlg = new ConnectionDialog();
+	Q_UNUSED(mb);
+	Q_UNUSED(km);
+	setUrl(bm.url());
+}
 
+bool ConnectionDialog::setUrl(const QUrl& url)
+{
 	bool ok = false;
 	if(url.scheme() == "sqlite3") {
-		dlg->m_ui->dbtype->setCurrentIndex(0);
-		dlg->m_ui->filepath->setText(url.path());
+		m_ui->dbtype->setCurrentIndex(0);
+		m_ui->filepath->setText(url.path());
 		// TODO check that the file exists
 		ok = !url.path().isEmpty();
 	} else if(url.scheme()=="mysql" || url.scheme()=="pgsql") {
-		dlg->m_ui->dbtype->setCurrentIndex(url.scheme()=="mysql" ? 1 : 2);
-		dlg->m_ui->dbname->setText(url.path().mid(1));
+		m_ui->dbtype->setCurrentIndex(url.scheme()=="mysql" ? 1 : 2);
+		m_ui->dbname->setText(url.path().mid(1));
 		if(url.port()>0)
-			dlg->m_ui->serverport->setText(QString::number(url.port()));
-		dlg->m_ui->servername->setText(url.host());
-		dlg->m_ui->username->setText(url.userName());
-		dlg->m_ui->password->setText(url.password());
+			m_ui->serverport->setText(QString::number(url.port()));
+		m_ui->servername->setText(url.host());
+		m_ui->username->setText(url.userName());
+		// TODO don't store password in bookmark
+		m_ui->password->setText(url.password());
 
-		ok = !dlg->m_ui->servername->text().isEmpty();
+		ok = !m_ui->servername->text().isEmpty();
 	} else {
 		KMessageBox::sorry(0,"Unknown database type " + url.scheme());
 	}
 
+	return ok;
+}
+
+ConnectionDialog *ConnectionDialog::open(const QUrl& url)
+{
+	ConnectionDialog *dlg = new ConnectionDialog();
+
+	bool ok = dlg->setUrl(url);
 	dlg->show();
 
 	if(ok)
 		dlg->openConnection();
 
 	return dlg;
-}
-
-ConnectionDialog::~ConnectionDialog()
-{
-	delete m_ui;
 }
 
 void ConnectionDialog::slotButtonClicked(int button)
@@ -121,7 +145,7 @@ void ConnectionDialog::failed(const QString &message)
 	delete m_connection;
 	enableButtonOk(true);
 	enableButtonCancel(true);
-	KMessageBox::error(this,tr("Couldn't open database connection!"), message);
+	KMessageBox::detailedError(this,tr("Couldn't open database connection!"), message);
 }
 
 void ConnectionDialog::openConnection()
