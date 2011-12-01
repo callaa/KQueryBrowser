@@ -19,11 +19,15 @@
 
 #include "serverconnection.h"
 
+/**
+ \brief Connection handler for MySQL
+
+ */
 class MysqlConnection : public ServerConnection
 {
     Q_OBJECT
 public:
-    explicit MysqlConnection(QObject *parent = 0);
+    MysqlConnection(const KUrl& url, QObject *parent);
 
 protected:
 	QString type() const { return QString("QMYSQL"); }

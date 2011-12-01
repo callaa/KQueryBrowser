@@ -22,22 +22,19 @@
 #include "sqlite3connection.h"
 #include "../meta/table.h"
 
-Sqlite3Connection::Sqlite3Connection(const QString& dbpath, QObject *parent) :
-	Connection(parent), m_dbpath(dbpath)
+Sqlite3Connection::Sqlite3Connection(const KUrl& url, QObject *parent) :
+	Connection(url, parent)
 {
 }
 
 void Sqlite3Connection::prepareConnection(QSqlDatabase &db)
 {
-	db.setDatabaseName(m_dbpath);
+	db.setDatabaseName(url().path());
 }
 
 QString Sqlite3Connection::name() const
 {
-	int slash = m_dbpath.lastIndexOf('/');
-	if(slash<0)
-		return m_dbpath;
-	return m_dbpath.mid(slash+1);
+	return url().fileName();
 }
 
 QVector<Schema> Sqlite3Connection::schemas()

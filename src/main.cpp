@@ -27,6 +27,7 @@
 #include "connectiondialog.h"
 #include "db/queryresults.h"
 #include "meta/database.h"
+#include "bookmarks.h"
 
 int main (int argc, char *argv[])
 {
@@ -63,6 +64,8 @@ int main (int argc, char *argv[])
 	KCmdLineArgs::addCmdLineOptions(opts);
 
 	KApplication app;
+
+	Bookmarks::init();
 
 	KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
 	if(args->count()==0) {

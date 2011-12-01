@@ -17,6 +17,10 @@
 	<Menu name="results"><text>Results</text>
 		<Action name="resultsclear" />
 	</Menu>
+
+	<Menu name="bookmarks" noMerge="1"><text>Bookmarks</text>
+	</Menu>
+
 	<Menu name="settings">
 		<Action name="showtables" />
 		<Action name="showdatabases" />
@@ -29,4 +33,16 @@
 	<Action name="clear" />
 </ToolBar>
 -->
+<State name="tab-script">
+	<enable>
+		<Action name="savescript" />
+		<Action name="savescriptas" />
+	</enable>
+</State>
+<State name="tab-query">
+	<disable>
+		<Action name="savescript" />
+		<Action name="savescriptas" />
+	</disable>
+</State>
 </gui>

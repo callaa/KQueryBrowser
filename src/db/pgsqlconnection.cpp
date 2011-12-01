@@ -22,8 +22,8 @@
 #include "../meta/table.h"
 #include "../stringbuilder.h"
 
-PgsqlConnection::PgsqlConnection(QObject *parent) :
-    ServerConnection(parent)
+PgsqlConnection::PgsqlConnection(const KUrl& url, QObject *parent) :
+    ServerConnection(url, parent)
 {
 }
 

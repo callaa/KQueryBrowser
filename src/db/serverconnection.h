@@ -19,28 +19,31 @@
 
 #include "connection.h"
 
+/**
+ * \brief Base class for server based database connections.
+ *
+ * This class provides a prepareConnection implementation that sets
+ * the database host, port, username, password and database name.
+ */
 class ServerConnection : public Connection
 {
     Q_OBJECT
 public:
-	explicit ServerConnection(QObject *parent = 0);
+	ServerConnection(const KUrl& url, QObject *parent);
 
-	void setServer(const QString& host) { m_host = host; }
-	void setPort(int port) { m_port = port; }
-	void setUsername(const QString& username) { m_username = username; }
-	void setPassword(const QString& password) { m_password = password; }
-	void setDatabase(const QString& database) { m_database = database; }
+	QString name() const;
 
-	QString name() const { return m_database; }
 protected:
 	void prepareConnection(QSqlDatabase &db);
-	virtual int defaultPort() const = 0;
 
-private:
-	QString m_host;
-	int m_port;
-	QString m_username, m_password;
-	QString m_database;
+	/**
+	 * \brief Get the default port
+	 *
+	 * Concrete classes must reimplement this method to return
+	 * the default port number for the database server.
+	 * This number is used if no port has been explicitly set in the URL.
+	 */
+	virtual int defaultPort() const = 0;
 };
 
 #endif // SERVERCONNECTION_H

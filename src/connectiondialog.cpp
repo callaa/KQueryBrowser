@@ -126,31 +126,33 @@ void ConnectionDialog::failed(const QString &message)
 
 void ConnectionDialog::openConnection()
 {
-	// Create a proper type of connection
+	// Build the URL for the connection
+	KUrl url;
 	if(m_ui->dbtype->currentIndex()==0) {
-		m_connection = new Sqlite3Connection(m_ui->filepath->text());
+		url = KUrl("sqlite3:" + m_ui->filepath->text());
 	} else {
-		ServerConnection *srvcon;
-		if(m_ui->dbtype->currentIndex()==1) {
-			srvcon = new MysqlConnection();
-		} else if(m_ui->dbtype->currentIndex()==2) {
-			srvcon = new PgsqlConnection();
-		} else  {
+		if(m_ui->dbtype->currentIndex()==1)
+			url.setScheme("mysql");
+		else if(m_ui->dbtype->currentIndex()==2)
+			url.setScheme("pgsql");
+		else  {
 			KMessageBox::sorry(this,"Bug: unimplemented selection " + QString::number(m_ui->dbtype->currentIndex()));
 			return;
 		}
 
-		srvcon->setServer(m_ui->servername->text());
+		url.setHost(m_ui->servername->text());
 		bool ok;
 		int port = m_ui->serverport->text().toInt(&ok);
 		if(ok)
-			srvcon->setPort(port);
-		srvcon->setUsername(m_ui->username->text());
-		srvcon->setPassword(m_ui->password->text());
-		srvcon->setDatabase(m_ui->dbname->text());
-
-		m_connection = srvcon;
+			url.setPort(port);
+		url.setUserName(m_ui->username->text());
+		url.setPassword(m_ui->username->text());
+		url.setPath(m_ui->dbname->text());
 	}
+
+	// Create the connection
+	m_connection = Connection::create(url);
+	Q_ASSERT(m_connection);
 
 	// Connect open/fail signals
 	connect(m_connection, SIGNAL(opened()), this, SLOT(opened()));

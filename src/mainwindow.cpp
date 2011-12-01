@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include <QDebug>
 #include <KApplication>
 #include <KActionCollection>
 #include <KAction>
@@ -21,6 +22,8 @@
 #include <KFileDialog>
 #include <KMessageBox>
 #include <KStandardGuiItem>
+#include <KBookmarkMenu>
+#include <KMenu>
 
 #include <QTabWidget>
 #include <QTreeView>
@@ -33,6 +36,7 @@
 #include "scriptwidget.h"
 #include "tablelistwidget.h"
 #include "databaselistwidget.h"
+#include "bookmarks.h"
 
 MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	: KXmlGuiWindow(parent), m_connection(connection), m_querytabs(0)
@@ -80,6 +84,12 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
+
+	new KBookmarkMenu(
+			Bookmarks::manager(),
+			this,
+			findChild<KMenu*>("bookmarks"),
+			actionCollection());
 }
 
 MainWindow::~MainWindow()
@@ -125,14 +135,45 @@ void MainWindow::setupActions()
 	KAction *clearResultView = new KAction(tr("Clear"), this);
 	actionCollection()->addAction("resultsclear", clearResultView);
 	connect(clearResultView, SIGNAL(triggered()), this, SLOT(clearResults()));
+
+
+	KAction *newConnection = new KAction(tr("New connection"), this);
+	actionCollection()->addAction("newconnection", newConnection);
+	connect(newConnection, SIGNAL(triggered()), this, SLOT(newConnection()));
+}
+
+void MainWindow::newConnection()
+{
+	// TODO
+}
+
+QString MainWindow::currentTitle() const
+{
+	return m_connection->name();
+}
+
+QString MainWindow::currentUrl() const
+{
+	// TODO use prettyUrl() and store password in KWallet
+	return m_connection->url().url();
+}
+
+void MainWindow::openBookmark(const KBookmark& bookmark, Qt::MouseButtons mb, Qt::KeyboardModifiers km)
+{
+	Q_UNUSED(mb);
+	Q_UNUSED(km);
+	qDebug() << bookmark.text();
+	// TODO open new connection
 }
 
 void MainWindow::currentTabChanged(int index)
 {
 	ScriptWidget *sw = qobject_cast<ScriptWidget*>(m_tabs->widget(index));
 
-	actionCollection()->action("savescript")->setEnabled(sw!=0);
-	actionCollection()->action("savescriptas")->setEnabled(sw!=0);
+	if(sw==0)
+		stateChanged("tab-query");
+	else
+		stateChanged("tab-script");
 }
 
 void MainWindow::newTab(QWidget *widget, const QString& title)
@@ -256,3 +297,4 @@ void MainWindow::runQuery(const QString &query)
 		qobject_cast<QueryWidget*>(m_tabs->currentWidget())->runQuery(query);
 	}
 }
+

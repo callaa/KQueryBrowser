@@ -20,10 +20,14 @@
 #include "connection.h"
 #include "dbctxmanager.h"
 
+#include "sqlite3connection.h"
+#include "mysqlconnection.h"
+#include "pgsqlconnection.h"
+
 int Connection::m_count = 0;
 
-Connection::Connection(QObject *parent) :
-	QThread(parent)
+Connection::Connection(const KUrl& url, QObject *parent) :
+	QThread(parent), m_url(url)
 {
 }
 
@@ -31,6 +35,18 @@ Connection::~Connection()
 {
 	quit();
 	wait();
+}
+
+Connection *Connection::create(const KUrl& url, QObject *parent)
+{
+	if(url.scheme() == "sqlite3")
+		return new Sqlite3Connection(url, parent);
+	else if(url.scheme() == "mysql")
+		return new MysqlConnection(url, parent);
+	else if(url.scheme() == "pgsql")
+		return new PgsqlConnection(url, parent);
+	else
+		return 0;
 }
 
 void Connection::connectContext(QObject *querytool)

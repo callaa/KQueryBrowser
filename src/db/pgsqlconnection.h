@@ -19,11 +19,14 @@
 
 #include "serverconnection.h"
 
+/**
+ \brief Connection handler for PostgreSQL
+ */
 class PgsqlConnection : public ServerConnection
 {
     Q_OBJECT
 public:
-    explicit PgsqlConnection(QObject *parent = 0);
+    PgsqlConnection(const KUrl& url, QObject *parent);
 
 protected:
 	QString type() const { return QString("QPSQL"); }

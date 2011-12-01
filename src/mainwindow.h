@@ -18,16 +18,25 @@
 #define MAINWINDOW_H
 
 #include <KXmlGuiWindow>
+#include <KBookmarkOwner>
 
 class Connection;
 class QTabWidget;
 
-class MainWindow : public KXmlGuiWindow
+class MainWindow : public KXmlGuiWindow, public KBookmarkOwner
 {
 	Q_OBJECT
 public:
 	MainWindow(Connection *connection, QWidget *parent=0);
 	~MainWindow();
+
+	void openBookmark(const KBookmark& bookmark, Qt::MouseButtons mb, Qt::KeyboardModifiers km);
+
+	//! Get the title of the current connection
+	QString currentTitle() const;
+
+	//! Get the URL of the current connection
+	QString currentUrl() const;
 
 public slots:
 	//! Open a new query tab
@@ -52,6 +61,9 @@ public slots:
 	  */
 	void runQuery(const QString& query);
 
+	//! Show new connection dialog
+	void newConnection();
+
 protected slots:
 	//! Close a tab
 	void closeTab(int index);
@@ -71,7 +83,6 @@ private:
 	QTabWidget *m_tabs;
 	Connection *m_connection;
 	int m_querytabs;
-
 };
 
 #endif // MAINWINDOW_H

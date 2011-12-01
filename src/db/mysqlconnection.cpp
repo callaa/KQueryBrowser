@@ -21,8 +21,8 @@
 #include "mysqlconnection.h"
 #include "../meta/table.h"
 
-MysqlConnection::MysqlConnection(QObject *parent) :
-    ServerConnection(parent)
+MysqlConnection::MysqlConnection(const KUrl& url, QObject *parent) :
+    ServerConnection(url, parent)
 {
 }
 

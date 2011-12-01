@@ -20,6 +20,8 @@
 #include <QThread>
 #include <QSqlDatabase>
 
+#include <KUrl>
+
 #include "../meta/schema.h"
 
 class QSqlError;
@@ -36,8 +38,23 @@ class Connection : public QThread
 	friend class DbCtxManager;
     Q_OBJECT
 public:
-    explicit Connection(QObject *parent = 0);
+    explicit Connection(const KUrl &url, QObject *parent = 0);
 	~Connection();
+
+	/**
+	 \brief Create a new database connection.
+	
+	 The connection type is decided based on the URL scheme component.
+	 The connection is not automatically opened. Connect the signals and
+	 call start() to open it. The signal opened() will be emitted when
+	 the connection is successfully opened. In case of error,
+	 cannotOpen(QString) is emitted. 
+
+	 \param url the database URL
+	 \param parent the parent object for the connection
+	 \return new connection or 0 if type is unrecognized
+	 */
+	static Connection *create(const KUrl& url, QObject *parent = 0);
 
 	/**
 	  \brief Connect the signals and slots for a query browser window
@@ -66,8 +83,16 @@ public:
 
 	/**
 	  \brief Get the name of the connection
+
+	  The name depends on the connection type, but is usually
+	  the name of the database.
 	  */
 	virtual QString name() const = 0;
+
+	/**
+	 \brief Get the URL that was used to open this connection
+	 */
+	const KUrl& url() const { return m_url; }
 
 signals:
 	//! The database connection was opened succesfully
@@ -76,7 +101,12 @@ signals:
 	//! Couldn't open connection
 	void cannotOpen(const QString& message);
 
-	//! Request new context for an object from the context manager
+	/**
+	 \brief Request new context for an object from the context manager
+
+	 This is a connected to the context manager via a blocking queued connection.
+	 */
+
 	void needNewContext(QObject *forthis);
 
 	//! Request new dbStructure
@@ -97,12 +127,18 @@ protected:
 	/**
 	  \brief Set connection properties
 
-	  This should be called from the main thread before starting this thread.
+	  This is called from the run() method just before opening the connection.
 	  */
 	virtual void prepareConnection(QSqlDatabase &db) = 0;
 
 	/**
 	  \brief Get schemas available in the current database
+
+	  The schema list contains all the schemas and their tables available
+	  to the current user.
+	  If a database does not support schemas, the return value should contain
+	  a single schema with an empty name which in turn should contain
+	  the list of database tables.
 
 	  This should be called only from this thread.
 	  */
@@ -126,6 +162,8 @@ protected:
 private:
 	//! Number of connections opened (this is used to make unique connection names)
 	static int m_count;
+
+	KUrl m_url;
 };
 
 #endif // CONNECTION_H

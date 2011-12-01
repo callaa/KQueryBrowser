@@ -1,6 +1,3 @@
-//
-// This file is part of KQueryBrowser.
-//
 // KQueryBrowser is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -14,24 +11,18 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include "serverconnection.h"
+#ifndef BOOKMARKS_H
+#define BOOKMARKS_H
 
-ServerConnection::ServerConnection(const KUrl& url, QObject *parent) :
-	Connection(url, parent)
-{
-}
+class KBookmarkManager;
 
-QString ServerConnection::name() const
-{
-	return url().path();
-}
+class Bookmarks {
+	public:
+		static void init();
+		static KBookmarkManager *manager();
+	private:
+		KBookmarkManager *m_manager;
+};
 
-void ServerConnection::prepareConnection(QSqlDatabase &db)
-{
-	const KUrl& u = url();
-	db.setHostName(u.host());
-	db.setPort(u.port(defaultPort()));
-	db.setUserName(u.userName());
-	db.setPassword(u.password());
-	db.setDatabaseName(name());
-}
+#endif
+

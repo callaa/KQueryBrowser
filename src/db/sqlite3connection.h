@@ -23,7 +23,7 @@ class Sqlite3Connection : public Connection
 {
     Q_OBJECT
 public:
-	explicit Sqlite3Connection(const QString& dbpath, QObject *parent = 0);
+	Sqlite3Connection(const KUrl& url, QObject *parent);
 
 	QString name() const;
 protected:
@@ -33,9 +33,6 @@ protected:
 
 	QVector<Schema> schemas();
 	QStringList databases();
-
-private:
-	QString m_dbpath;
 };
 
 #endif // SQLITE3CONNECTION_H
