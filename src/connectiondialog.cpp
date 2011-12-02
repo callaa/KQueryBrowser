@@ -172,7 +172,7 @@ void ConnectionDialog::openConnection()
 		if(ok)
 			url.setPort(port);
 		url.setUserName(m_ui->username->text());
-		url.setPassword(m_ui->username->text());
+		url.setPassword(m_ui->password->text());
 		url.setPath(m_ui->dbname->text());
 	}
 
