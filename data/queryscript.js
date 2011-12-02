@@ -1,19 +1,6 @@
 
 /* Initialize the query browser. This is called when the browser has been loaded */
 function qb_init() {
-/*
-	var queryform = document.createElement("form");
-	var querybox = document.createElement("input");
-	querybox.id = "query";
-	queryform.appendChild(querybox);
-	document.body.appendChild(queryform);
-
-	queryform.onsubmit = function() {
-		qbrowser.performQuery(querybox.value);
-		querybox.value = "";
-		return false;
-	}
-	*/
 }
 
 /* A new query was started */
@@ -54,8 +41,14 @@ function qb_endquery(id, total) {
 	if(btns!=null) {
 		btns.parentNode.removeChild(btns);
 	}
-
 	window.scrollTo(0, document.body.scrollHeight);
+}
+
+
+/* Show a column's full value */
+function qb_showresult(link) {
+	qbrowser.showBigResult(link.attributes['data-index']);
+	return false;
 }
 
 function queryAbort() {

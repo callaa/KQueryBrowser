@@ -33,8 +33,8 @@ const int QueryView::DEFAULT_PAGESIZE;
 class HtmlTableIterator : public TableCellIterator
 {
 public:
-	HtmlTableIterator(const QWebFrame *frame)
-		: m_frame(frame)
+	HtmlTableIterator(const QWebFrame *frame, const QVector<BigValue> &bigvalues)
+		: m_frame(frame), m_bigvalues(bigvalues)
 	{ }
 
 	int columns() const { return m_cheaders.count(); }
@@ -50,6 +50,7 @@ public:
 
 private:
 	const QWebFrame *m_frame;
+	const QVector<BigValue> &m_bigvalues;
 	QString m_query;
 	int m_crows;
 	QVector<Column> m_cheaders;
@@ -90,7 +91,7 @@ void QueryView::clear()
 
 TableCellIterator *QueryView::tableIterator() const
 {
-	return new HtmlTableIterator(page()->currentFrame());
+	return new HtmlTableIterator(page()->currentFrame(), m_bigresults);
 }
 
 void QueryView::startNewQuery(const QString &querystr)
@@ -117,6 +118,9 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 	const QString TR("<tr>");
 	const QString eTR("</tr>\n");
 	const QString NULLVAL("<b>NULL</b>");
+	const QString BIGLINK_("<a data-index=\"");
+	const QString _BIGLINK("\" onclick=\"qb_showresult(this)\" href=\"#\">");
+	const QString eA("</a>");
 
 	if(newtable) {
 		const QString TH("<th>");
@@ -142,7 +146,9 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 					// TODO configurable limit
 					bigresults.append(BigValue(columnnames.at(col),c));
 					val.truncate(40);
-					html << TD << "<a href=\"javascript:qbrowser.showBigResult(" << QString::number(bigresults.count()-1) << ")\">" << esc(val) << "</a>" << eTD;
+					html << TD << BIGLINK_ <<
+						QString::number(bigresults.count()-1) <<
+						_BIGLINK << esc(val) << eA << eTD;
 				} else {
 					html << TD << esc(val) << eTD;
 				}
@@ -292,7 +298,14 @@ bool HtmlTableIterator::nextColumn()
 
 QVariant HtmlTableIterator::value() const
 {
-	// TODO long values
-	return QVariant(m_el.toPlainText());
+	QWebElement fc = m_el.firstChild();
+	// we use "B" tags to indicate nulls
+	if(fc.tagName()=="B")
+		return QVariant(QVariant::String);
+	else if(fc.tagName()=="A") {
+		// A long value
+		return m_bigvalues.at(fc.attribute("data-index").toInt()).second;
+	} else
+		return QVariant(m_el.toPlainText());
 }
 

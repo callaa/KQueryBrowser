@@ -69,7 +69,11 @@ void HtmlExporter::beginTable(TableCellIterator *iterator)
 		m_file->write("\t<tr>\n");
 		while(iterator->nextColumn()) {
 			m_file->write("\t\t<td>");
-			m_file->write(esc(iterator->value().toString()));
+			QVariant value = iterator->value();
+			if(value.isNull())
+				m_file->write("<b>NULL</b>");
+			else
+				m_file->write(esc(value.toString()));
 			m_file->write("</td>\n");
 		}
 		m_file->write("\t</tr>\n");
