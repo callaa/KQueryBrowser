@@ -58,6 +58,7 @@ install(FILES
 	data/kquerybrowserui.rc
 	data/queryscript.js
 	data/querystyle.css
+	data/export.html
 	data/sep0.png
 	data/sep1.png
 	data/ajax-loader.gif
