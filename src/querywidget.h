@@ -22,6 +22,7 @@
 class QueryView;
 class SqlLineEdit;
 class QueryResults;
+class TableCellIterator;
 
 class QueryWidget : public QWidget
 {
@@ -38,6 +39,12 @@ public:
 	  \param query the query to run
 	  */
 	void runQuery(const QString& query);
+
+	/**
+	 * \brief Get a table iterator for exporting results
+	 * \return table iterator instance
+	 */
+	TableCellIterator *tableIterator() const;
 
 signals:
 	void doQuery(const QString& query, int limit);

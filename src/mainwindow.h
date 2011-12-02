@@ -76,6 +76,7 @@ protected slots:
 
 	void currentTabChanged(int index);
 
+	void exportResults(QAction *action);
 private:
 	void setupActions();
 	void newTab(QWidget *widget, const QString& title);

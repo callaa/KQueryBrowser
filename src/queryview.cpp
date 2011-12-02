@@ -24,10 +24,37 @@
 
 #include "queryview.h"
 #include "db/queryresults.h"
+#include "export/exporter.h"
 #include "valueview.h"
 #include "stringbuilder.h"
 
 const int QueryView::DEFAULT_PAGESIZE;
+
+class HtmlTableIterator : public TableCellIterator
+{
+public:
+	HtmlTableIterator(const QWebFrame *frame)
+		: m_frame(frame)
+	{ }
+
+	int columns() const { return m_cheaders.count(); }
+	int rows() const { return m_crows; }
+	const Column& header(int column) const { return m_cheaders.at(column); }
+	const QString& query() const { return m_query; }
+
+	bool nextColumn();
+	bool nextRow();
+	bool nextTable();
+
+	QVariant value() const;
+
+private:
+	const QWebFrame *m_frame;
+	QString m_query;
+	int m_crows;
+	QVector<Column> m_cheaders;
+	QWebElement m_el;
+};
 
 QueryView::QueryView(QWidget *parent) :
 	QWebView(parent), m_querycount(0)
@@ -59,6 +86,11 @@ void QueryView::clear()
 	m_bigresults.clear();
 	foreach(QWebElement e, page()->currentFrame()->findAllElements("div.query"))
 		e.removeFromDocument();
+}
+
+TableCellIterator *QueryView::tableIterator() const
+{
+	return new HtmlTableIterator(page()->currentFrame());
 }
 
 void QueryView::startNewQuery(const QString &querystr)
@@ -180,3 +212,87 @@ void QueryView::queryGetAll()
 {
 	emit getMoreResults(-1);
 }
+
+bool HtmlTableIterator::nextTable()
+{
+	// Find next query div
+	if(m_el.isNull()) {
+		// First call
+		m_el = m_frame->findFirstElement("div.query");
+	} else {
+		// We've already iterated over the query div, back up and go to the next
+		m_el = m_el.nextSibling();
+		while(!m_el.isNull() && (m_el.tagName() != "DIV" || !m_el.hasClass("query")))
+			m_el = m_el.nextSibling();
+	}
+
+	if(m_el.isNull())
+		return false;
+
+	// Get headers
+	QWebElementCollection headers = m_el.findAll("thead th");
+	if(headers.count()==0)
+		return false;
+
+	m_cheaders.clear();
+	for(int i=0;i<headers.count();++i)
+		m_cheaders.append(Column(headers.at(i).toPlainText()));
+
+	// Get query string
+	m_query = m_el.findFirst("p.query").toPlainText();
+
+	return true;
+}
+
+bool HtmlTableIterator::nextRow()
+{
+	QWebElement old = m_el;
+	// If current tag name is TR, we got (back) here by nextCell().
+	// Just move over to the next row.
+	// If it is DIV, this is the first nextRow() call since nextTable().
+	if(m_el.tagName() == "TR")
+		m_el = m_el.nextSibling();
+	else if(m_el.tagName() == "DIV")
+		m_el = m_el.findFirst("tbody>tr");
+	else {
+		qWarning("Element pointer at a %s, expected tr or div!", m_el.tagName().toAscii().constData());
+		return false;
+	}
+
+	// If element was not found, rewind back to query div
+	if(m_el.isNull()) {
+		m_el = old;
+		while(!m_el.isNull() && (m_el.tagName() != "DIV" || !m_el.hasClass("query")))
+			m_el = m_el.parent();
+		return false;
+	} else
+		return true;
+}
+
+bool HtmlTableIterator::nextColumn()
+{
+	// If current tag name is TD, just move over to the next one.
+	// If it is TR, this is the first call to nextColumn() since nextRow()
+	if(m_el.tagName()=="TD") {
+		QWebElement e = m_el;
+		// Move to next cell, or parent tr if this was the last cell
+		m_el = m_el.nextSibling();
+		if(m_el.isNull()) {
+			m_el = e.parent();
+		}
+	} else if(m_el.tagName()=="TR") {
+		m_el = m_el.firstChild();
+	} else {
+		qWarning("Element pointer at a %s, expected td or tr!", m_el.tagName().toAscii().constData());
+		return false;
+	}
+
+	return m_el.tagName()=="TD";
+}
+
+QVariant HtmlTableIterator::value() const
+{
+	// TODO long values
+	return QVariant(m_el.toPlainText());
+}
+

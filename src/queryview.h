@@ -23,6 +23,7 @@
 #include <QPair>
 
 class QueryResults;
+class TableCellIterator;
 
 // Pair of column name and data
 typedef QPair<QString,QVariant> BigValue;
@@ -51,6 +52,12 @@ public:
 	  \brief Show the results of a query.
 	  */
 	void showResults(const QueryResults& results);
+
+	/**
+	 * \brief Return an iterator for exporting view contents
+	 * \return new table cell iterator instance
+	 */
+	TableCellIterator *tableIterator() const;
 
 signals:
 	void getMoreResults(int limit);

@@ -16,6 +16,8 @@
 	</Menu>
 	<Menu name="results"><text>Results</text>
 		<Action name="resultsclear" />
+		<Separator />
+		<ActionList name="resultexports" />
 	</Menu>
 
 	<Menu name="bookmarks" noMerge="1"><text>Bookmarks</text>

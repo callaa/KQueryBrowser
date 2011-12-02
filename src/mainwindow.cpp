@@ -21,6 +21,7 @@
 #include <KStandardAction>
 #include <KFileDialog>
 #include <KMessageBox>
+#include <KSaveFile>
 #include <KStandardGuiItem>
 #include <KBookmarkMenu>
 #include <KMenu>
@@ -37,6 +38,7 @@
 #include "tablelistwidget.h"
 #include "databaselistwidget.h"
 #include "bookmarks.h"
+#include "export/exporter.h"
 
 MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	: KXmlGuiWindow(parent), m_connection(connection), m_querytabs(0)
@@ -84,6 +86,11 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
+
+	QActionGroup *exportgroup = Exporters::instance().multiTableActions(this);
+	plugActionList("resultexports", exportgroup->actions());
+	connect(exportgroup, SIGNAL(triggered(QAction*)),
+			this, SLOT(exportResults(QAction*)));
 
 	KMenu *bmmenu = findChild<KMenu*>("bookmarks");
 	KBookmarkMenu *bmm = new KBookmarkMenu(
@@ -299,6 +306,47 @@ void MainWindow::runQuery(const QString &query)
 	} else {
 		newQueryTab();
 		qobject_cast<QueryWidget*>(m_tabs->currentWidget())->runQuery(query);
+	}
+}
+
+void MainWindow::exportResults(QAction *action)
+{
+	QString format = action->objectName().mid(action->objectName().indexOf('_')+1);
+	QString filename = KFileDialog::getSaveFileName(
+			KUrl(),
+			"*." + action->property("fileExtension").toString() + "|" + format + "\n*|All files",
+			this);
+
+	if(!filename.isEmpty()) {
+		KSaveFile file(filename);
+		if(!file.open()) {
+			KMessageBox::error(this, file.errorString());
+		} else {
+			// TODO
+			Exporter *exporter = Exporters::instance().get(format);
+
+			exporter->startFile(&file);
+
+			TableCellIterator *iterator;
+			if(ScriptWidget *sw = qobject_cast<ScriptWidget*>(m_tabs->currentWidget()))
+				iterator = sw->tableIterator();
+			else if(QueryWidget *qw = qobject_cast<QueryWidget*>(m_tabs->currentWidget()))
+				iterator = qw->tableIterator();
+			else {
+				qFatal("Weird tab encountered!");
+				return;
+			}
+
+			while(iterator->nextTable())
+				exporter->beginTable(iterator);
+
+			exporter->done();
+			delete exporter;
+
+			if(!file.finalize())
+				KMessageBox::error(this, file.errorString());
+			file.close();
+		}
 	}
 }
 

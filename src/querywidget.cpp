@@ -44,6 +44,11 @@ QueryWidget::QueryWidget(QWidget *parent) :
 	setLayout(layout);
 }
 
+TableCellIterator *QueryWidget::tableIterator() const
+{
+	return m_view->tableIterator();
+}
+
 void QueryWidget::runQuery(const QString &query)
 {
 	m_query->pushHistory(query);

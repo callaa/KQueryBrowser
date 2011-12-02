@@ -27,6 +27,7 @@ namespace KTextEditor {
 
 class QueryView;
 class QueryResults;
+class TableCellIterator;
 
 /**
   \brief An SQL script editor widget
@@ -49,6 +50,8 @@ public:
 	const KUrl& documentUrl() const { return m_documenturl; }
 	QString documentName() const;
 	bool isUnsaved() const;
+
+	TableCellIterator *tableIterator() const;
 
 signals:
 	void doQuery(const QString& query, int limit);

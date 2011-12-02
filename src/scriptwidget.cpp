@@ -129,6 +129,11 @@ void ScriptWidget::clearResults()
 	m_resultview->clear();
 }
 
+TableCellIterator *ScriptWidget::tableIterator() const
+{
+	return m_resultview->tableIterator();
+}
+
 bool ScriptWidget::save()
 {
 	return m_document->save();
