@@ -55,6 +55,9 @@ public:
 
 	/**
 	 * \brief Return an iterator for exporting view contents
+	 *
+	 * Note. You are responsible for deleting the iterator yourself
+	 * after you're done.
 	 * \return new table cell iterator instance
 	 */
 	TableCellIterator *tableIterator() const;
@@ -63,9 +66,36 @@ signals:
 	void getMoreResults(int limit);
 
 public slots:
+	/**
+	 * \brief Request more results
+	 *
+	 * This is typically called from the viewer JavaScript.
+	 */
 	void queryGetMore();
+
+	/**
+	 * \brief Request the rest of the results
+	 *
+	 * This is typically called from the viewer JavaScript.
+	 */
 	void queryGetAll();
+
+	/**
+	 * \brief Show a long result value in a viewer dialog
+	 *
+	 * This is typically called from the viewer JavaScript.
+	 * \param index index of result in bigresult vector.
+	 */
 	void showBigResult(int index);
+
+	/**
+	 * \brief Export a single table
+	 *
+	 * This is typically called from the viewer JavaScript.
+	 * \param id table ID
+	 * \param format export format
+	 */
+	void exportTable(const QString& id, const QString& format);
 
 protected slots:
 	void initQueryBrowser(bool ok);

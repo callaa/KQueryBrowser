@@ -322,7 +322,6 @@ void MainWindow::exportResults(QAction *action)
 		if(!file.open()) {
 			KMessageBox::error(this, file.errorString());
 		} else {
-			// TODO
 			Exporter *exporter = Exporters::instance().get(format);
 
 			exporter->startFile(&file);
@@ -340,6 +339,7 @@ void MainWindow::exportResults(QAction *action)
 			while(iterator->nextTable())
 				exporter->beginTable(iterator);
 
+			delete iterator;
 			exporter->done();
 			delete exporter;
 

@@ -17,10 +17,14 @@
 #include <QDebug>
 #include <QWebFrame>
 #include <QWebElement>
+#include <QBuffer>
 
 #include <KStandardDirs>
 #include <KConfig>
 #include <KConfigGroup>
+#include <KMessageBox>
+#include <KFileDialog>
+#include <KSaveFile>
 
 #include "queryview.h"
 #include "db/queryresults.h"
@@ -46,12 +50,16 @@ public:
 	bool nextRow();
 	bool nextTable();
 
+	// Internal: get ID of current query
+	const QString queryid() const { return m_queryid; }
+
 	QVariant value() const;
 
 private:
 	const QWebFrame *m_frame;
 	const QVector<BigValue> &m_bigvalues;
 	QString m_query;
+	QString m_queryid;
 	int m_crows;
 	QVector<Column> m_cheaders;
 	QWebElement m_el;
@@ -78,8 +86,25 @@ void QueryView::initQueryBrowser(bool ok)
 {
 	if(!ok)
 		qWarning("Query browser load error!");
-	else
-		page()->currentFrame()->evaluateJavaScript("qb_init()");
+	else {
+		StringBuilder sb;
+		sb << "qb_init([";
+		foreach(ExporterFactory *ef, Exporters::instance().exporters()) {
+			sb << "{format: '" << ef->format() << "'";
+			if(!ef->icon().isNull()) {
+				sb << ", icon: 'data:image/png;base64,";
+				QBuffer img;
+				img.open(QBuffer::WriteOnly);
+				ef->icon().pixmap(24,24).save(&img, "PNG");
+				sb << img.data().toBase64();
+				sb << "'";
+			}
+			sb << "},";
+		}
+		sb << "])";
+
+		page()->currentFrame()->evaluateJavaScript(sb.toString());
+	}
 }
 
 void QueryView::clear()
@@ -119,7 +144,7 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 	const QString eTR("</tr>\n");
 	const QString NULLVAL("<b>NULL</b>");
 	const QString BIGLINK_("<a data-index=\"");
-	const QString _BIGLINK("\" onclick=\"qb_showresult(this)\" href=\"#\">");
+	const QString _BIGLINK("\" onclick=\"qb_show(this)\" href=\"#\">");
 	const QString eA("</a>");
 
 	if(newtable) {
@@ -219,6 +244,43 @@ void QueryView::queryGetAll()
 	emit getMoreResults(-1);
 }
 
+void QueryView::exportTable(const QString& id, const QString& format)
+{
+	QString filename = KFileDialog::getSaveFileName(
+			KUrl(),
+			"*." + Exporters::instance().getExtension(format) + "|" +
+			format + "\n*|All files",
+			this);
+	
+	if(!filename.isEmpty()) {
+		KSaveFile file(filename);
+		if(!file.open()) {
+			KMessageBox::error(this, file.errorString());
+		} else {
+			HtmlTableIterator iterator(page()->currentFrame(), m_bigresults);
+
+			Exporter *exporter = Exporters::instance().get(format);
+
+			exporter->startFile(&file);
+
+			// Find the table and export just that one
+			while(iterator.nextTable()) {
+				if(iterator.queryid() == id) {
+					exporter->beginTable(&iterator);
+					break;
+				}
+			}
+			exporter->done();
+			delete exporter;
+
+			if(!file.finalize())
+				KMessageBox::error(this, file.errorString());
+			file.close();
+		}
+	}
+
+}
+
 bool HtmlTableIterator::nextTable()
 {
 	// Find next query div
@@ -246,6 +308,9 @@ bool HtmlTableIterator::nextTable()
 
 	// Get query string
 	m_query = m_el.findFirst("p.query").toPlainText();
+
+	// Get query ID
+	m_queryid = m_el.attribute("id");
 
 	return true;
 }

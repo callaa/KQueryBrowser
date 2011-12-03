@@ -25,6 +25,13 @@ Exporter *Exporters::get(const QString& format) const
 	return 0;
 }
 
+QString Exporters::getExtension(const QString& format) const
+{
+	if(m_factory.contains(format))
+		return m_factory.value(format)->ext();
+	return QString();
+}
+
 QActionGroup *Exporters::multiTableActions(QObject *parent) const
 {
 	QActionGroup *grp = new QActionGroup(parent);

@@ -82,6 +82,8 @@ td>b {
 	cursor: default
 }
 
+.summary { display: inline-block; }
+
 /* Error and success elements */
 .error, .success {
 	border-radius: 0.2em;
@@ -108,6 +110,32 @@ div.ui {
         color: #000;
         text-decoration: none;
         padding: 0.5em;
+}
+
+.export {
+	display: inline-block;
+	border: 1px solid #bbb;
+	border-top-color: #eee;
+	border-left-color: #eee;
+	background: #f6f6fa;
+	padding: 0.2em 0.5em 0.2em 4em;
+	margin: 0.5em 0 0 1em;
+	position: relative;
+	border-radius: 0.5em;
+}
+
+.export>span {
+	cursor: default;
+	position: absolute;
+	top: 0;
+	left: 0;
+	font-size: small;
+	background: #e1e1e1;
+	padding: 3px 5px;
+	border-top-left-radius: 0.5em;
+	border-bottom-right-radius: 0.5em;
+	border-bottom-color: #eee;
+	border-right-color: #eee;
 }
 
 /* Spinner shown while waiting for data */

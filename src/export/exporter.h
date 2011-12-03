@@ -211,6 +211,19 @@ public:
 	Exporter *get(const QString& format) const;
 
 	/**
+	 * \brief Get the default file extension for the format
+	 * \param format
+	 * \return format
+	 */
+	QString getExtension(const QString& format) const;
+
+	/**
+	 * \brief Get all the registered exporter factories.
+	 * \return list of exporter factories
+	 */
+	QList<ExporterFactory*> exporters() const { return m_factory.values(); }
+
+	/**
 	 \brief Get a list of actions for multitable exporters
  
 	 This function returns a list of actions that can be plugged
