@@ -79,7 +79,7 @@ function qb_endquery(id, total) {
 
 /* Show a column's full value */
 function qb_show(link) {
-	qbrowser.showBigResult(link.attributes['data-index']);
+	qbrowser.showBigResult(link.getAttribute('data-index'));
 	return false;
 }
 
