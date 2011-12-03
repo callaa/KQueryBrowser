@@ -23,7 +23,7 @@
 #include <KConfig>
 #include <KConfigGroup>
 #include <KMessageBox>
-#include <KFileDialog>
+#include <KEncodingFileDialog>
 #include <KSaveFile>
 
 #include "queryview.h"
@@ -246,14 +246,15 @@ void QueryView::queryGetAll()
 
 void QueryView::exportTable(const QString& id, const QString& format)
 {
-	QString filename = KFileDialog::getSaveFileName(
-			KUrl(),
+	KEncodingFileDialog::Result filename = KEncodingFileDialog::getSaveFileNameAndEncoding(
+			"UTF-8",
+			QString(),
 			"*." + Exporters::instance().getExtension(format) + "|" +
 			format + "\n*|All files",
 			this);
 	
-	if(!filename.isEmpty()) {
-		KSaveFile file(filename);
+	if(!filename.fileNames.isEmpty()) {
+		KSaveFile file(filename.fileNames.at(0));
 		if(!file.open()) {
 			KMessageBox::error(this, file.errorString());
 		} else {
@@ -261,7 +262,7 @@ void QueryView::exportTable(const QString& id, const QString& format)
 
 			Exporter *exporter = Exporters::instance().get(format);
 
-			exporter->startFile(&file);
+			exporter->startFile(&file, filename.encoding);
 
 			// Find the table and export just that one
 			while(iterator.nextTable()) {

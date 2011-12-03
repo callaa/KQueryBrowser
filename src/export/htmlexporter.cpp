@@ -1,5 +1,7 @@
 #include <QVariant>
 #include <QFile>
+#include <QTextCodec>
+#include <QTextStream>
 
 #include <KStandardDirs>
 
@@ -8,16 +10,21 @@
 
 class HtmlExporter : public Exporter {
 public:
-	HtmlExporter();
-	~HtmlExporter() { delete m_tpl; }
+	~HtmlExporter() {
+		delete m_tpl;
+		delete m_tplfile;
+		delete m_out;
+	}
 
-	void startFile(QIODevice *file);
+	void startFile(QIODevice *file, const QString& encoding);
 	void beginTable(TableCellIterator *iterator);
 	void done();
 
 private:
-	QIODevice *m_file;
-	QFile *m_tpl;
+	QTextStream *m_out;
+
+	QFile *m_tplfile;
+	QTextStream *m_tpl;
 };
 
 class HtmlExporterFactory : public ExporterFactory
@@ -33,61 +40,73 @@ class HtmlExporterFactory : public ExporterFactory
 
 static HtmlExporterFactory htmlexporter;
 
-HtmlExporter::HtmlExporter()
+void HtmlExporter::startFile(QIODevice *file, const QString& encoding)
 {
-}
+	// Output stream in requested encoding
+	m_out = new QTextStream(file);
+	m_out->setCodec(QTextCodec::codecForName(encoding.toAscii()));
 
-void HtmlExporter::startFile(QIODevice *file)
-{
-	m_file = file;
-	m_tpl = new QFile(KStandardDirs::locate("appdata", "export.html"));
-	m_tpl->open(QIODevice::ReadOnly | QIODevice::Text);
+	// Template input stream (template is in UTF-8)
+	m_tplfile = new QFile(KStandardDirs::locate("appdata", "export.html"));
+	m_tplfile->open(QIODevice::ReadOnly | QIODevice::Text);
+	m_tpl = new QTextStream(m_tplfile);
+
 	while(true) {
-		QByteArray line = m_tpl->readLine();
-		if(line.isEmpty() || line.startsWith("--MERGE--"))
+		QString line = m_tpl->readLine();
+		if(line.isNull() || line == "<!--MERGE-->")
 				break;
-		m_file->write(line);
+		else if(line=="<!--CONTENT-TYPE-->")
+			*m_out << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" << encoding << "\">\n";
+		else
+			*m_out << line << '\n';
 	}
 }
 
-static QByteArray esc(QString text) {
-        return text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").toUtf8();
+static QString esc(QString text) {
+        return text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
 }
 
 void HtmlExporter::beginTable(TableCellIterator *iterator)
 {
-	m_file->write("<div class=\"query\">\n<p class=\"query\">");
-	m_file->write(esc(iterator->query()));
-	m_file->write("</p>\n<table><thead>\n\t<tr>\n");
+	*m_out << "<div class=\"query\">\n<p class=\"query\">";
+	*m_out << esc(iterator->query());
+	*m_out << "</p>\n<table><thead>\n\t<tr>\n";
 	for(int i=0;i<iterator->columns();++i) {
-		m_file->write("\t\t<th>");
-		m_file->write(esc(iterator->header(i).name()));
-		m_file->write("</th>\n");
+		*m_out << "\t\t<th>";
+		*m_out << esc(iterator->header(i).name());
+		*m_out << "</th>\n";
 	}
-	m_file->write("\t</tr>\n</thead><tbody>\n");
+	*m_out << "\t</tr>\n</thead><tbody>\n";
 	while(iterator->nextRow()) {
-		m_file->write("\t<tr>\n");
+		*m_out << "\t<tr>\n";
 		while(iterator->nextColumn()) {
-			m_file->write("\t\t<td>");
+			*m_out << "\t\t<td>";
 			QVariant value = iterator->value();
 			if(value.isNull())
-				m_file->write("<b>NULL</b>");
+				*m_out << "<b>NULL</b>";
 			else
-				m_file->write(esc(value.toString()));
-			m_file->write("</td>\n");
+				*m_out << esc(value.toString());
+			*m_out << "</td>\n";
 		}
-		m_file->write("\t</tr>\n");
+		*m_out << "\t</tr>\n";
 	}
-	m_file->write("</tbody></table>\n</div>\n");
+	*m_out << "</tbody></table>\n</div>\n";
 }
 
 void HtmlExporter::done()
 {
-	char buffer[1024];
-	int len;
-	while((len=m_tpl->read(buffer, sizeof buffer))>0)
-			m_file->write(buffer, len);
+	while(true) {
+		QString line = m_tpl->readLine();
+		if(line.isNull())
+			break;
+		*m_out << line << '\n';
+	}
+
 	delete m_tpl;
+	delete m_tplfile;
+	delete m_out;
 	m_tpl = 0;
+	m_tplfile = 0;
+	m_out = 0;
 }
 

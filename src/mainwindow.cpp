@@ -20,6 +20,7 @@
 #include <KAction>
 #include <KStandardAction>
 #include <KFileDialog>
+#include <KEncodingFileDialog>
 #include <KMessageBox>
 #include <KSaveFile>
 #include <KStandardGuiItem>
@@ -312,19 +313,20 @@ void MainWindow::runQuery(const QString &query)
 void MainWindow::exportResults(QAction *action)
 {
 	QString format = action->objectName().mid(action->objectName().indexOf('_')+1);
-	QString filename = KFileDialog::getSaveFileName(
-			KUrl(),
+	KEncodingFileDialog::Result filename = KEncodingFileDialog::getSaveFileNameAndEncoding(
+			"UTF-8",
+			QString(),
 			"*." + action->property("fileExtension").toString() + "|" + format + "\n*|All files",
 			this);
 
-	if(!filename.isEmpty()) {
-		KSaveFile file(filename);
+	if(!filename.fileNames.isEmpty()) {
+		KSaveFile file(filename.fileNames.at(0));
 		if(!file.open()) {
 			KMessageBox::error(this, file.errorString());
 		} else {
 			Exporter *exporter = Exporters::instance().get(format);
 
-			exporter->startFile(&file);
+			exporter->startFile(&file, filename.encoding);
 
 			TableCellIterator *iterator;
 			if(ScriptWidget *sw = qobject_cast<ScriptWidget*>(m_tabs->currentWidget()))

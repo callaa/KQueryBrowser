@@ -102,11 +102,12 @@ public:
 	virtual ~Exporter() { };
 
 	/**
-	 \brief Start a new file
-
-	 \param file the file to write to
+	 * \brief Start a new file
+	 *
+	 * \param file the file to write to
+	 * \param encoding the requested encoding (for text files)
 	 */
-	virtual void startFile(QIODevice *file) = 0;
+	virtual void startFile(QIODevice *file, const QString& encoding) = 0;
 
 	/**
 	 \brief Start a new table.
