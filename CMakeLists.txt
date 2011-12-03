@@ -18,6 +18,7 @@ set(kquerybrowser_SRCS
 	src/meta/column.cpp
 	src/export/exporter.cpp
 	src/export/htmlexporter.cpp
+	src/export/csvexporter.cpp
 	src/main.cpp
 	src/mainwindow.cpp
 	src/connectiondialog.cpp

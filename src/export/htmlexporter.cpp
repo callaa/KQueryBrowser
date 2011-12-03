@@ -10,6 +10,7 @@
 
 class HtmlExporter : public Exporter {
 public:
+	HtmlExporter() : m_out(0), m_tplfile(0), m_tpl(0) { }
 	~HtmlExporter() {
 		delete m_tpl;
 		delete m_tplfile;
