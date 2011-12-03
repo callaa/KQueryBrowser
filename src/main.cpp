@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QDebug>
 #include <QUrl>
 
 #include <KApplication>
@@ -48,7 +47,7 @@ int main (int argc, char *argv[])
 				// The license this code is released under
 				KAboutData::License_GPL_V3,
 				// Copyright Statement
-				ki18n("(c) 2011"),
+				ki18n("(c) 2011, Calle Laakkonen"),
 				// Optional text shown in the About box.
 				// Can contain any information desired.
 				ki18n(""),
@@ -59,7 +58,7 @@ int main (int argc, char *argv[])
 
 	KCmdLineArgs::init( argc, argv, &aboutData );
 	KCmdLineOptions opts;
-	opts.add("+[url]", ki18n("Database URl"));
+	opts.add("+[url]", ki18n("Database URL"));
 
 	KCmdLineArgs::addCmdLineOptions(opts);
 
@@ -69,11 +68,9 @@ int main (int argc, char *argv[])
 
 	KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
 	if(args->count()==0) {
-		qDebug() << "Showing";
 		(new ConnectionDialog())->show();
 	} else {
 		for(int i=0;i<args->count();++i) {
-			qDebug() << "Opening" << args->arg(i);
 			QUrl url(args->arg(i));
 			if(url.isValid()) {
 				ConnectionDialog::open(url);
