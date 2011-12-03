@@ -19,7 +19,6 @@
 #include <KActionCollection>
 #include <KAction>
 #include <KStandardAction>
-#include <KFileDialog>
 #include <KEncodingFileDialog>
 #include <KMessageBox>
 #include <KSaveFile>
@@ -46,8 +45,11 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 {
 	setAttribute(Qt::WA_DeleteOnClose, true);
 	setWindowIcon(KIcon("kquerybrowser"));
-	setCaption(connection->name());
+	nameChange(connection->name());
 	setupActions();
+
+	connect(connection, SIGNAL(nameChanged(QString)),
+			this, SLOT(nameChange(QString)));
 
 	// Create tabs for query and script widgets. This is the central widget
 	m_tabs = new QTabWidget();
@@ -73,17 +75,25 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	connect(tablelist, SIGNAL(refresh()), m_connection, SIGNAL(needDbStructure()));
 
 	// Create the database list dock widget
-	DatabaseListWidget *dblist = new DatabaseListWidget(m_connection->name(), this);
+	DatabaseListWidget *dblist = new DatabaseListWidget(m_connection->isCapable(Connection::SWITCH_DB), this);
 	dblist->setObjectName("databaselist");
 	dblist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, dblist);
-	connect(m_connection, SIGNAL(dbList(QStringList)), dblist, SLOT(refreshList(QStringList)));
+	connect(m_connection, SIGNAL(dbList(QStringList, QString)),
+			dblist, SLOT(refreshList(QStringList, QString)));
 	m_connection->getDbList();
 
 	QAction *showdbs = actionCollection()->action("showdatabases");
-	connect(dblist, SIGNAL(visibilityChanged(bool)), showdbs, SLOT(setChecked(bool)));
-	connect(showdbs, SIGNAL(triggered(bool)), dblist, SLOT(setVisible(bool)));
-	connect(dblist, SIGNAL(refresh()), m_connection, SIGNAL(needDbList()));
+	connect(dblist, SIGNAL(visibilityChanged(bool)),
+			showdbs, SLOT(setChecked(bool)));
+	connect(showdbs, SIGNAL(triggered(bool)),
+			dblist, SLOT(setVisible(bool)));
+	connect(dblist, SIGNAL(refresh()),
+			m_connection, SIGNAL(needDbList()));
+	connect(dblist, SIGNAL(switchDatabase(QString)),
+			m_connection, SIGNAL(switchDatabase(QString)));
+	connect(dblist, SIGNAL(newConnection(QString)),
+			this, SLOT(newDbConnection(QString)));
 
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
@@ -108,6 +118,11 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 MainWindow::~MainWindow()
 {
 	delete m_connection;
+}
+
+void MainWindow::nameChange(const QString& name)
+{
+	setCaption(name);
 }
 
 void MainWindow::setupActions()
@@ -157,6 +172,13 @@ void MainWindow::setupActions()
 
 void MainWindow::newConnection(const QUrl& url)
 {
+	ConnectionDialog::open(url);
+}
+
+void MainWindow::newDbConnection(const QString &database)
+{
+	KUrl url = m_connection->url();
+	url.setPath("/" + database);
 	ConnectionDialog::open(url);
 }
 

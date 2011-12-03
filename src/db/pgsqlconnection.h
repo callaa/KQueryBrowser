@@ -28,6 +28,8 @@ class PgsqlConnection : public ServerConnection
 public:
     PgsqlConnection(const KUrl& url, QObject *parent);
 
+	bool isCapable(Capability capability) const;
+
 protected:
 	QString type() const { return QString("QPSQL"); }
 	int defaultPort() const { return 5432; }

@@ -19,6 +19,7 @@
 
 #include <QThread>
 #include <QSqlDatabase>
+#include <QMutex>
 
 #include <KUrl>
 
@@ -40,6 +41,17 @@ class Connection : public QThread
 public:
     explicit Connection(const KUrl &url, QObject *parent = 0);
 	~Connection();
+
+	/**
+	 * \brief special features supported by the connection handler
+	 */
+	enum Capability {
+		//! Can switch the current database
+		SWITCH_DB,
+
+		//! Can show table creation script
+		SHOW_CREATE
+	};
 
 	/**
 	 \brief Create a new database connection.
@@ -92,7 +104,13 @@ public:
 	/**
 	 \brief Get the URL that was used to open this connection
 	 */
-	const KUrl& url() const { return m_url; }
+	KUrl url() const;
+
+	/**
+	 * \brief Check if this connection handler has the given feature
+	 * \return true if feature is available
+	 */
+	virtual bool isCapable(Capability capability) const = 0;
 
 signals:
 	//! The database connection was opened succesfully
@@ -100,6 +118,14 @@ signals:
 
 	//! Couldn't open connection
 	void cannotOpen(const QString& message);
+
+	/**
+	 * \brief The name of this connection has changed.
+	 *
+	 * This is emitted when the connection URL is changed.
+	 * \param name the new name
+	 */
+	void nameChanged(const QString& name);
 
 	/**
 	 \brief Request new context for an object from the context manager
@@ -115,14 +141,32 @@ signals:
 	//! Request new dbList
 	void needDbList();
 
+	/**
+	 * \brief Request switching of connected database
+	 * \param database name of the new database
+	 */
+	void switchDatabase(const QString& database);
+
 	//! Updated database structure info
 	void dbStructure(const Database& tables);
 
-	//! Updated database list
-	void dbList(const QStringList& databases);
+	/**
+	 * \brief Updated database list
+	 * \param databases list of available database names
+	 * \param current the currently connected database
+	 */
+	void dbList(const QStringList& databases, const QString& current);
 
 protected:
 	void run();
+
+	/**
+	 * \brief Change the connection URL.
+	 *
+	 * The signal namedChanged(QString) is emitted automatically.
+	 * \param newurl the new URL
+	 */
+	void changeUrl(const KUrl &newurl);
 
 	/**
 	  \brief Set connection properties
@@ -152,6 +196,19 @@ protected:
 	virtual QStringList databases() = 0;
 
 	/**
+	 * \brief Switch the currently active database
+	 *
+	 * The default implementation returns false and prints
+	 * a warning. Reimplement this if your subclass has the
+	 * SWITCH_DB capability.
+	 *
+	 * This should be called only from this thread.
+	 * \param database the new database
+	 * \return true if switch succeeded
+	 */
+	virtual bool selectDatabase(const QString& database);
+
+	/**
 	  \brief Return the Qt SQL driver type for this connection
 	  */
 	virtual QString type() const = 0;
@@ -164,6 +221,7 @@ private:
 	static int m_count;
 
 	KUrl m_url;
+	QMutex m_urlmutex;
 };
 
 #endif // CONNECTION_H

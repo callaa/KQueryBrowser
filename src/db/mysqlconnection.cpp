@@ -26,6 +26,15 @@ MysqlConnection::MysqlConnection(const KUrl& url, QObject *parent) :
 {
 }
 
+bool MysqlConnection::isCapable(Capability capability) const
+{
+	switch(capability) {
+		case SHOW_CREATE: return true;
+		case SWITCH_DB: return true;
+		default: return false;
+	}
+}
+
 QVector<Schema> MysqlConnection::schemas()
 {
 	QVector<Table> tables;
@@ -63,3 +72,16 @@ QStringList MysqlConnection::databases()
 		list << q.value(0).toString();
 	return list;
 }
+
+bool MysqlConnection::selectDatabase(const QString& database)
+{
+	QSqlQuery q(m_db);
+	if(q.exec("USE " + database)) {
+		KUrl newurl = url();
+		newurl.setPath(database);
+		changeUrl(newurl);
+		return true;
+	}
+	return false;
+}
+

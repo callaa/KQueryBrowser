@@ -58,5 +58,16 @@ void DbCtxManager::getDbStructure()
 
 void DbCtxManager::getDbList()
 {
-	emit dbList(m_connection->databases());
+	emit dbList(m_connection->databases(), m_connection->name());
 }
+
+void DbCtxManager::switchDatabase(const QString& database)
+{
+	if(m_connection->selectDatabase(database)) {
+		getDbList();
+		getDbStructure();
+	} else {
+		qWarning("Database switch (%s) failed!", database.toAscii().constData());
+	}
+}
+

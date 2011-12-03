@@ -26,6 +26,8 @@ public:
 	Sqlite3Connection(const KUrl& url, QObject *parent);
 
 	QString name() const;
+	bool isCapable(Capability capability) const;
+
 protected:
 	QString type() const { return QString("QSQLITE"); }
 

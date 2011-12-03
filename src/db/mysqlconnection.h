@@ -29,9 +29,13 @@ class MysqlConnection : public ServerConnection
 public:
     MysqlConnection(const KUrl& url, QObject *parent);
 
+	bool isCapable(Capability capability) const;
+
 protected:
 	QString type() const { return QString("QMYSQL"); }
 	int defaultPort() const { return 3306; }
+
+	bool selectDatabase(const QString& database);
 
 	QVector<Schema> schemas();
 	QStringList databases();

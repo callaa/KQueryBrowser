@@ -65,11 +65,23 @@ public slots:
 	void newConnection(const QUrl& url = QUrl());
 
 protected slots:
+	/**
+	 * \brief Connection name has changed
+	 * \param name the new name
+	 */
+	void nameChange(const QString& name);
+
 	//! Close a tab
 	void closeTab(int index);
 
 	//! The "content modified" flag on a tab has changed
 	void tabNameChange(const QString& name);
+
+	/**
+	 * \brief Open a new database connection on the same server
+	 * \param database the name of the database
+	 */
+	void newDbConnection(const QString &database);
 
 	//! Clear the results view of the current tab
 	void clearResults();

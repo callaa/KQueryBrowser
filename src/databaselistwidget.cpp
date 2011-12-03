@@ -4,8 +4,8 @@
 
 #include "databaselistwidget.h"
 
-DatabaseListWidget::DatabaseListWidget(const QString& current, QWidget *parent) :
-	QDockWidget(tr("Databases"), parent), m_current(current)
+DatabaseListWidget::DatabaseListWidget(bool canswitch, QWidget *parent) :
+	QDockWidget(tr("Databases"), parent), m_canswitch(canswitch)
 {
 	m_view = new QListWidget(this);
 	m_view->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -14,12 +14,12 @@ DatabaseListWidget::DatabaseListWidget(const QString& current, QWidget *parent) 
 	setWidget(m_view);
 }
 
-void DatabaseListWidget::refreshList(const QStringList &databases)
+void DatabaseListWidget::refreshList(const QStringList &databases, const QString& current)
 {
 	m_view->clear();
 	foreach(const QString& db, databases) {
 		QListWidgetItem *item = new QListWidgetItem(db, m_view);
-		if(db == m_current) {
+		if(db == current) {
 			QFont font = item->font();
 			font.setBold(true);
 			item->setFont(font);
@@ -31,10 +31,27 @@ void DatabaseListWidget::refreshList(const QStringList &databases)
 void DatabaseListWidget::customContextMenu(const QPoint& point)
 {
 	QMenu menu;
-	QAction *refreshAct = menu.addAction("Refresh");
+
+	QListWidgetItem *item = m_view->itemAt(point);
+	QAction *newConnect=0, *switchDb=0;
+	if(item) {
+		newConnect = menu.addAction(tr("New connection"));
+		if(m_canswitch)
+			switchDb = menu.addAction(tr("Switch database"));
+	}
+
+	if(!menu.isEmpty())
+		menu.addSeparator();
+
+	QAction *refreshAct = menu.addAction(tr("Refresh"));
 
 	QAction *a = menu.exec(m_view->mapToGlobal(point));
 	if(a!=0) {
-		emit refresh();
+		if(a==refreshAct)
+			emit refresh();
+		else if(a==newConnect)
+			emit newConnection(item->text());
+		else if(a==switchDb)
+			emit switchDatabase(item->text());
 	}
 }

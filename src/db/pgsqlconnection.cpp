@@ -27,6 +27,13 @@ PgsqlConnection::PgsqlConnection(const KUrl& url, QObject *parent) :
 {
 }
 
+bool PgsqlConnection::isCapable(Capability capability) const
+{
+	switch(capability) {
+		default: return false;
+	}
+}
+
 static QString typestr(const QString &datatype, const QVariant &maxcharlen)
 {
 	// TODO add more type info (numeric precision etc.)
@@ -104,3 +111,4 @@ QStringList PgsqlConnection::databases()
 		list << q.value(0).toString();
 	return list;
 }
+

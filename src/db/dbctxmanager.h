@@ -32,13 +32,14 @@ public:
 
 signals:
 	void dbStructure(const Database& db);
-	void dbList(const QStringList& databases);
+	void dbList(const QStringList& databases, const QString& current);
 
 public slots:
 	void createContext(QObject *forthis);
 	void removeContext(QObject *forthis);
 	void getDbStructure();
 	void getDbList();
+	void switchDatabase(const QString& database);
 
 private:
 	Connection *m_connection;

@@ -27,6 +27,14 @@ Sqlite3Connection::Sqlite3Connection(const KUrl& url, QObject *parent) :
 {
 }
 
+bool Sqlite3Connection::isCapable(Capability capability) const
+{
+	switch(capability) {
+		case SHOW_CREATE: return true;
+		default: return false;
+	}
+}
+
 void Sqlite3Connection::prepareConnection(QSqlDatabase &db)
 {
 	db.setDatabaseName(url().path());

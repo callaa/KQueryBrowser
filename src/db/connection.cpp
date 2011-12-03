@@ -16,6 +16,7 @@
 //
 #include <QDebug>
 #include <QSqlError>
+#include <QMutexLocker>
 
 #include "connection.h"
 #include "dbctxmanager.h"
@@ -49,6 +50,21 @@ Connection *Connection::create(const KUrl& url, QObject *parent)
 		return 0;
 }
 
+KUrl Connection::url() const
+{
+	QMutexLocker l(const_cast<QMutex*>(&m_urlmutex));
+	return m_url;
+}
+
+void Connection::changeUrl(const KUrl& url)
+{
+	{
+		QMutexLocker l(&m_urlmutex);
+		m_url = url;
+	}
+	emit nameChanged(name());
+}
+
 void Connection::connectContext(QObject *querytool)
 {
 	emit needNewContext(querytool);
@@ -74,11 +90,18 @@ void Connection::run()
 
 	if(m_db.open()) {
 		DbCtxManager *ctxman = new DbCtxManager(this);
-		connect(this, SIGNAL(needNewContext(QObject*)), ctxman, SLOT(createContext(QObject*)), Qt::BlockingQueuedConnection);
-		connect(this, SIGNAL(needDbStructure()), ctxman, SLOT(getDbStructure()), Qt::QueuedConnection);
-		connect(this, SIGNAL(needDbList()), ctxman, SLOT(getDbList()), Qt::QueuedConnection);
-		connect(ctxman, SIGNAL(dbStructure(Database)), this, SIGNAL(dbStructure(Database)), Qt::QueuedConnection);
-		connect(ctxman, SIGNAL(dbList(QStringList)), this, SIGNAL(dbList(QStringList)), Qt::QueuedConnection);
+		connect(this, SIGNAL(needNewContext(QObject*)),
+				ctxman, SLOT(createContext(QObject*)), Qt::BlockingQueuedConnection);
+		connect(this, SIGNAL(needDbStructure()),
+				ctxman, SLOT(getDbStructure()), Qt::QueuedConnection);
+		connect(this, SIGNAL(needDbList()),
+				ctxman, SLOT(getDbList()), Qt::QueuedConnection);
+		connect(this, SIGNAL(switchDatabase(QString)),
+				ctxman, SLOT(switchDatabase(QString)), Qt::QueuedConnection);
+		connect(ctxman, SIGNAL(dbStructure(Database)),
+				this, SIGNAL(dbStructure(Database)), Qt::QueuedConnection);
+		connect(ctxman, SIGNAL(dbList(QStringList,QString)),
+				this, SIGNAL(dbList(QStringList, QString)), Qt::QueuedConnection);
 		emit opened();
 
 		exec();
@@ -92,3 +115,11 @@ void Connection::run()
 		emit cannotOpen(error);
 	}
 }
+
+bool Connection::selectDatabase(const QString& database)
+{
+	Q_UNUSED(database);
+	qWarning("selectDatabase() not implemented for this connection type!");
+	return false;
+}
+
