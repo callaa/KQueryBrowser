@@ -144,7 +144,7 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 	const QString eTR("</tr>\n");
 	const QString NULLVAL("<b>NULL</b>");
 	const QString BIGLINK_("<a data-index=\"");
-	const QString _BIGLINK("\" onclick=\"qb_show(this)\" href=\"#\">");
+	const QString _BIGLINK("\" onclick=\"return qb_show(this)\" href=\"#\">");
 	const QString eA("</a>");
 
 	if(newtable) {
