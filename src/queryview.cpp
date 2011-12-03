@@ -253,7 +253,7 @@ void QueryView::exportTable(const QString& id, const QString& format)
 			format + "\n*|All files",
 			this);
 	
-	if(!filename.fileNames.isEmpty()) {
+	if(!filename.fileNames.at(0).isEmpty()) {
 		KSaveFile file(filename.fileNames.at(0));
 		if(!file.open()) {
 			KMessageBox::error(this, file.errorString());
