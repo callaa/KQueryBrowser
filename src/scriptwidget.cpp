@@ -110,6 +110,11 @@ bool ScriptWidget::isValid() const
 	return m_document != 0;
 }
 
+void ScriptWidget::setContent(const QString& content)
+{
+	m_document->setText(content);
+}
+
 void ScriptWidget::executeQuery()
 {
 	m_resultview->clear();

@@ -15,6 +15,7 @@
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QVariant>
 #include <QStringList>
 
@@ -83,5 +84,18 @@ bool MysqlConnection::selectDatabase(const QString& database)
 		return true;
 	}
 	return false;
+}
+
+QString MysqlConnection::createScript(const QString& table)
+{
+	QSqlQuery q("SHOW CREATE TABLE " + table, m_db);
+	// This query returns two columns: table name, create
+	if(!q.next()) {
+		qWarning("Couldn't show table (%s) creation script: %s",
+				table.toAscii().constData(),
+				q.lastError().text().toAscii().constData());
+		return QString();
+	}
+	return q.value(1).toString();
 }
 

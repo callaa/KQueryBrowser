@@ -43,7 +43,7 @@ public slots:
 	void newQueryTab();
 
 	//! Open a new blank script tab
-	void newScriptTab();
+	void newScriptTab(const QString& content=QString());
 
 	//! Open a script file
 	void openScript();

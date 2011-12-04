@@ -61,6 +61,11 @@ void DbCtxManager::getDbList()
 	emit dbList(m_connection->databases(), m_connection->name());
 }
 
+void DbCtxManager::makeCreateTable(const QString& table)
+{
+	emit newScript(m_connection->createScript(table));
+}
+
 void DbCtxManager::switchDatabase(const QString& database)
 {
 	if(m_connection->selectDatabase(database)) {

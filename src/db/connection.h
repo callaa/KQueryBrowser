@@ -142,6 +142,12 @@ signals:
 	void needDbList();
 
 	/**
+	 * \brief Request generation of a table creation script.
+	 * \param table the table name
+	 */
+	void needCreateTable(const QString& table);
+
+	/**
 	 * \brief Request switching of connected database
 	 * \param database name of the new database
 	 */
@@ -156,6 +162,14 @@ signals:
 	 * \param current the currently connected database
 	 */
 	void dbList(const QStringList& databases, const QString& current);
+
+	/**
+	 * \brief A new script has been generated
+	 *
+	 * The script can be shown in a new script editor tab.
+	 * \param script the newly generated script
+	 */
+	void newScript(const QString& script);
 
 protected:
 	void run();
@@ -194,6 +208,17 @@ protected:
 	  This should be called only from this thread.
 	  */
 	virtual QStringList databases() = 0;
+
+	/**
+	 * \brief Generate a creation script for a table
+	 *
+	 * The default implementation returns an empty string
+	 * and prints a warning. Reimplement this if your subclass
+	 * has the SHOW_CREATE capability.
+	 *
+	 * \param table the table name
+	 */
+	virtual QString createScript(const QString& table);
 
 	/**
 	 * \brief Switch the currently active database

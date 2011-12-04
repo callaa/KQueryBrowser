@@ -36,6 +36,7 @@ protected:
 	int defaultPort() const { return 3306; }
 
 	bool selectDatabase(const QString& database);
+	QString createScript(const QString& table);
 
 	QVector<Schema> schemas();
 	QStringList databases();

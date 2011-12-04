@@ -35,6 +35,7 @@ protected:
 
 	QVector<Schema> schemas();
 	QStringList databases();
+	QString createScript(const QString& table);
 };
 
 #endif // SQLITE3CONNECTION_H

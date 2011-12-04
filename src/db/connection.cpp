@@ -96,12 +96,16 @@ void Connection::run()
 				ctxman, SLOT(getDbStructure()), Qt::QueuedConnection);
 		connect(this, SIGNAL(needDbList()),
 				ctxman, SLOT(getDbList()), Qt::QueuedConnection);
+		connect(this, SIGNAL(needCreateTable(QString)),
+				ctxman, SLOT(makeCreateTable(QString)), Qt::QueuedConnection);
 		connect(this, SIGNAL(switchDatabase(QString)),
 				ctxman, SLOT(switchDatabase(QString)), Qt::QueuedConnection);
 		connect(ctxman, SIGNAL(dbStructure(Database)),
 				this, SIGNAL(dbStructure(Database)), Qt::QueuedConnection);
 		connect(ctxman, SIGNAL(dbList(QStringList,QString)),
 				this, SIGNAL(dbList(QStringList, QString)), Qt::QueuedConnection);
+		connect(ctxman, SIGNAL(newScript(QString)),
+				this, SIGNAL(newScript(QString)), Qt::QueuedConnection);
 		emit opened();
 
 		exec();
@@ -114,6 +118,13 @@ void Connection::run()
 		qDebug() << "Connection error:" << error;
 		emit cannotOpen(error);
 	}
+}
+
+QString Connection::createScript(const QString& table)
+{
+	Q_UNUSED(table);
+	qWarning("createScript() not implemented for this connection type!");
+	return QString();
 }
 
 bool Connection::selectDatabase(const QString& database)

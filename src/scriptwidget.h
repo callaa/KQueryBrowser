@@ -44,7 +44,23 @@ public:
 	//! Was initialization succesful
 	bool isValid() const;
 
+	/**
+	 * \brief Set the content of the script document
+	 *
+	 * \param text the new content
+	 */
+	void setContent(const QString& text);
+
+	/**
+	 * \brief Save the script
+	 * \return true on success
+	 */
 	bool save();
+
+	/**
+	 * \brief Save the script with a new name
+	 * \return true on success
+	 */
 	bool saveAs(const KUrl& url);
 
 	const KUrl& documentUrl() const { return m_documenturl; }
@@ -54,13 +70,43 @@ public:
 	TableCellIterator *tableIterator() const;
 
 signals:
+	/**
+	 * \brief A query was requested
+	 *
+	 * This is part of the unified interface of widgets that have
+	 * query contexts
+	 * \param query the query string
+	 * \param limit maximum number of results to return at once
+	 */
 	void doQuery(const QString& query, int limit);
+
+	/**
+	 * \brief Request more results
+	 * \param limit maximum number of results to return at once
+	 */
 	void getMoreResults(int limit);
+
+	/**
+	 * \brief Name of the script has changed
+	 * \param name the new name
+	 */
 	void nameChange(const QString& name);
 
 public slots:
+	/**
+	 * \brief Execute the script
+	 */
 	void executeQuery();
+
+	/**
+	 * \brief Show the results of a query
+	 * \param results query results
+	 */
 	void queryResults(const QueryResults& results);
+
+	/**
+	 * \brief Clear away all query results
+	 */
 	void clearResults();
 
 protected slots:

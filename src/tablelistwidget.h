@@ -26,10 +26,11 @@ class TableListWidget : public QDockWidget
 {
     Q_OBJECT
 public:
-    explicit TableListWidget(QWidget *parent = 0);
+    explicit TableListWidget(bool canshowcreate, QWidget *parent = 0);
 
 signals:
 	void runQuery(const QString& query);
+	void showCreate(const QString& table);
 	void refresh();
 
 public slots:
@@ -40,6 +41,7 @@ protected slots:
 
 private:
 	QTreeWidget *m_view;
+	bool m_canshowcreate;
 };
 
 #endif // TABLELISTWIDGET_H

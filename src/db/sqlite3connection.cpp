@@ -16,6 +16,7 @@
 //
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QVariant>
 #include <QStringList>
 
@@ -83,3 +84,19 @@ QStringList Sqlite3Connection::databases()
 	list << name();
 	return list;
 }
+
+QString Sqlite3Connection::createScript(const QString& table)
+{
+	QSqlQuery q(m_db);
+	q.prepare("SELECT sql FROM sqlite_master WHERE tbl_name=?");
+	q.bindValue(0, table);
+	q.exec();
+	if(q.next()==false) {
+		qWarning("Couldn't show table (%s) creation script: %s",
+				table.toAscii().constData(),
+				q.lastError().text().toAscii().constData());
+		return QString();
+	}
+	return q.value(0).toString();
+}
+

@@ -51,6 +51,9 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	connect(connection, SIGNAL(nameChanged(QString)),
 			this, SLOT(nameChange(QString)));
 
+	connect(connection, SIGNAL(newScript(QString)),
+			this, SLOT(newScriptTab(QString)));
+
 	// Create tabs for query and script widgets. This is the central widget
 	m_tabs = new QTabWidget();
 	setCentralWidget(m_tabs);
@@ -65,8 +68,12 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	tablelist->setObjectName("tablelist");
 	tablelist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, tablelist);
-	connect(m_connection, SIGNAL(dbStructure(Database)), tablelist, SLOT(refreshTree(Database)));
-	connect(tablelist, SIGNAL(runQuery(QString)), this, SLOT(runQuery(QString)));
+	connect(m_connection, SIGNAL(dbStructure(Database)),
+			tablelist, SLOT(refreshTree(Database)));
+	connect(tablelist, SIGNAL(runQuery(QString)),
+			this, SLOT(runQuery(QString)));
+	connect(tablelist, SIGNAL(showCreate(QString)),
+			m_connection, SIGNAL(needCreateTable(QString)));
 	m_connection->getDbStructure();
 
 	QAction *showtables = actionCollection()->action("showtables");
@@ -228,12 +235,14 @@ void MainWindow::newQueryTab()
 	newTab(new QueryWidget(this), tr("Query %1").arg(++m_querytabs));
 }
 
-void MainWindow::newScriptTab()
+void MainWindow::newScriptTab(const QString& content)
 {
 	ScriptWidget *sw = new ScriptWidget(KUrl(), this);
-	if(sw->isValid())
+	if(sw->isValid()) {
+		if(!content.isEmpty())
+			sw->setContent(content);
 		newTab(sw, sw->documentName());
-	else
+	} else
 		delete sw;
 }
 

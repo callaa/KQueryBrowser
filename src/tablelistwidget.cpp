@@ -22,8 +22,8 @@
 #include "tablelistwidget.h"
 #include "meta/database.h"
 
-TableListWidget::TableListWidget(QWidget *parent) :
-	QDockWidget(tr("Tables"), parent)
+TableListWidget::TableListWidget(bool canshowcreate, QWidget *parent) :
+	QDockWidget(tr("Tables"), parent), m_canshowcreate(canshowcreate)
 {
 	m_view = new QTreeWidget(this);
 	m_view->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -77,6 +77,8 @@ void TableListWidget::customContextMenu(const QPoint& point)
 	QTreeWidgetItem *item = m_view->itemAt(point);
 	QMenu menu;
 
+	QAction *showcreate=0;
+
 	if(item!=0 && item->data(0, Qt::UserRole)!=0) {
 		QString table;
 		if(item->data(0, Qt::UserRole)==1) {
@@ -94,6 +96,10 @@ void TableListWidget::customContextMenu(const QPoint& point)
 				table = tbl->text(0);
 		}
 
+		if(m_canshowcreate) {
+			showcreate = menu.addAction(tr("Show create script"));
+			showcreate->setProperty("tablename", table);
+		}
 		menu.addAction("SELECT * FROM " + table);
 		menu.addAction("SELECT COUNT(*) FROM " + table);
 
@@ -113,6 +119,8 @@ void TableListWidget::customContextMenu(const QPoint& point)
 	if(a!=0) {
 		if(a==refreshAct)
 			emit refresh();
+		else if(a==showcreate)
+			emit showCreate(a->property("tablename").toString());
 		else
 			emit runQuery(a->text());
 	}
