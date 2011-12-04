@@ -64,7 +64,7 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	newQueryTab();
 
 	// Create the table list dock widget
-	TableListWidget *tablelist = new TableListWidget(this);
+	TableListWidget *tablelist = new TableListWidget(m_connection->isCapable(Connection::SHOW_CREATE), this);
 	tablelist->setObjectName("tablelist");
 	tablelist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, tablelist);
