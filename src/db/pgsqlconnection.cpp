@@ -46,14 +46,15 @@ static QString typestr(const QString &datatype, const QVariant &maxcharlen)
 
 QVector<Schema> PgsqlConnection::schemas()
 {
-	QSqlQuery q("SELECT table_schema, table_name, column_name, data_type,character_maximum_length FROM information_schema.columns ORDER BY table_schema, table_name ASC", m_db);
+	QSqlQuery q("SELECT table_schema, table_name, table_type, column_name, data_type,character_maximum_length FROM information_schema.columns NATURAL JOIN information_schema.tables ORDER BY table_schema, table_name, ordinal_position ASC", m_db);
 	QVector<Schema> schemas;
 	while(q.next()) {
 		QString sname = q.value(0).toString();
 		QString tname = q.value(1).toString();
-		QString cname = q.value(2).toString();
-		QString ctype = q.value(3).toString();
-		QVariant cmaxlen = q.value(4);
+		QString ttype = q.value(2).toString();
+		QString cname = q.value(3).toString();
+		QString ctype = q.value(4).toString();
+		QVariant cmaxlen = q.value(5);
 
 		// Find schema
 		Schema *schema=0;
@@ -61,10 +62,16 @@ QVector<Schema> PgsqlConnection::schemas()
 			schemas.append(Schema(sname, QVector<Table>()));
 		schema = &schemas.last();
 
-		// Find table (TODO identify type [normal, view, system])
+		// Find table
 		Table *table=0;
-		if(schema->tables().isEmpty() || schema->tables().last().name() != tname)
-			schema->tables().append(Table(tname, QVector<Column>(), Table::TABLE));
+		if(schema->tables().isEmpty() || schema->tables().last().name() != tname) {
+			Table::Type type = Table::TABLE;
+			if(ttype=="VIEW")
+				type = Table::VIEW;
+			else if(sname == "pg_catalog")
+				type = Table::SYSTEMTABLE;
+			schema->tables().append(Table(tname, QVector<Column>(), type));
+		}
 		table = &schema->tables().last();
 
 		// Add column
