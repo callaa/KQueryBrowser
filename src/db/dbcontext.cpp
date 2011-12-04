@@ -18,6 +18,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QSqlField>
 #include <QSqlError>
 
 #include <climits>
@@ -76,8 +77,11 @@ void DbContext::getNewResults(int limit)
 		// Get column headers
 		const int cols = m_query->record().count();
 		res->columns.resize(cols);
-		for(int i=0;i<cols;++i)
-			res->columns[i] = Column(m_query->record().fieldName(i));
+		for(int i=0;i<cols;++i) {
+			QSqlField f = m_query->record().field(i);
+			res->columns[i] = Column(f.name());
+			res->columns[i].setType(QVariant::typeToName(f.type()));
+		}
 
 		// Get row data
 		gatherRows(res, cols, limit);

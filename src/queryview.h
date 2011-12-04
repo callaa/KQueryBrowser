@@ -100,6 +100,9 @@ public slots:
 protected slots:
 	void initQueryBrowser(bool ok);
 
+protected:
+	bool event(QEvent *event);
+
 private:
 	//! Number of queries performed
 	int m_querycount;

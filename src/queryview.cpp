@@ -18,6 +18,8 @@
 #include <QWebFrame>
 #include <QWebElement>
 #include <QBuffer>
+#include <QHelpEvent>
+#include <QWhatsThis>
 
 #include <KStandardDirs>
 #include <KConfig>
@@ -148,12 +150,13 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 	const QString eA("</a>");
 
 	if(newtable) {
-		const QString TH("<th>");
+		const QString TH_("<th data-type=\"");
+		const QString _TH("\">");
 		const QString eTH("</th>");
 		html << "<table><thead><tr>";
 		columnnames.clear();
 		foreach(const Column& c, columns) {
-			html << TH << esc(c.name()) << eTH;
+			html << TH_ << c.type() << _TH << esc(c.name()) << eTH;
 			columnnames << c.name();
 		}
 		html << "</tr></thead><tbody>\n";
@@ -242,6 +245,47 @@ void QueryView::queryGetMore()
 void QueryView::queryGetAll()
 {
 	emit getMoreResults(-1);
+}
+
+bool QueryView::event(QEvent *event)
+{
+	if(event->type()==QEvent::QueryWhatsThis || event->type() == QEvent::WhatsThis) {
+		QHelpEvent *e = static_cast<QHelpEvent*>(event);
+		QWebHitTestResult r = page()->mainFrame()->hitTestContent(e->pos());
+
+		// Check if the element under the pointer is a table cell
+		QWebElement el = r.enclosingBlockElement();
+		if(el.tagName()=="TD" || el.tagName()=="TH") {
+			if(event->type()==QEvent::WhatsThis) {
+				// Count index
+				int index=0;
+				QWebElement prev=el.previousSibling();
+				while(!prev.isNull()) {
+					++index;
+					prev = prev.previousSibling();
+				}
+
+				// Find table root
+				while(!el.isNull() && el.tagName()!="TABLE") el = el.parent();
+
+				// Find header
+				el = el.findFirst("thead").findAll("th").at(index);
+
+				// Show column info
+				QWhatsThis::showText(e->globalPos(),
+						tr("<b>Column:</b> %1 <sup>%2</sup><br><b>Type:</b> %3")
+							.arg(esc(el.toPlainText()))
+							.arg(index+1)
+							.arg(el.attribute("data-type")),
+						this);
+			}
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return QWebView::event(event);
+	}
 }
 
 void QueryView::exportTable(const QString& id, const QString& format)
