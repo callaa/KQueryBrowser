@@ -96,10 +96,6 @@ void TableListWidget::customContextMenu(const QPoint& point)
 				table = tbl->text(0);
 		}
 
-		if(m_canshowcreate) {
-			showcreate = menu.addAction(tr("Show create script"));
-			showcreate->setProperty("tablename", table);
-		}
 		menu.addAction("SELECT * FROM " + table);
 		menu.addAction("SELECT COUNT(*) FROM " + table);
 
@@ -107,6 +103,12 @@ void TableListWidget::customContextMenu(const QPoint& point)
 			// TODO make these customizable
 			menu.addAction("SELECT " + item->text(0) + " FROM " + table);
 			menu.addAction("SELECT DISTINCT " + item->text(0) + " FROM " + table);
+		}
+
+		if(m_canshowcreate) {
+			menu.addSeparator();
+			showcreate = menu.addAction(tr("Show create script"));
+			showcreate->setProperty("tablename", table);
 		}
 
 	}
