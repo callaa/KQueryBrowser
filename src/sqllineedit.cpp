@@ -25,10 +25,19 @@ SqlLineEdit::SqlLineEdit(QWidget *parent) :
 
 void SqlLineEdit::pushHistory(const QString &text)
 {
+	// Disallow consecutive duplicates
+	if(!m_history.isEmpty() && m_history.last() == text)
+		return;
+
+	// Add to history list while limiting its size
 	m_history.append(text);
 	if(m_history.count() > 100) /* TODO configurable limit */
 		m_history.removeFirst();
 
+	// History position is not updated if it's not at the end.
+	// This is so that if the user is browsing through the history and executes
+	// a query from somewhere else than the query box, (e.g. from the table list widget)
+	// they won't lose their spot.
 	if(m_historypos==m_history.count()-1)
 		++m_historypos;
 }
@@ -53,15 +62,11 @@ void SqlLineEdit::keyPressEvent(QKeyEvent *event)
 	} else if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
 		QString txt = text().trimmed();
 		if(!txt.isEmpty()) {
-			if(m_history.isEmpty() || m_history.last() != txt) {
-				pushHistory(txt);
-			}
+			pushHistory(txt);
 			m_historypos = m_history.count();
 			setText(QString());
-			emit returnPressed(txt);
-		} else {
-			emit returnPressed(txt);
 		}
+		emit returnPressed(txt);
 	} else {
 		KLineEdit::keyPressEvent(event);
 	}
