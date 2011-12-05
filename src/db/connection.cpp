@@ -113,11 +113,12 @@ void Connection::run()
 
 	} else {
 		QString error = m_db.lastError().text();
-		m_db = QSqlDatabase();
-		QSqlDatabase::removeDatabase(dbname);
 		qDebug() << "Connection error:" << error;
 		emit cannotOpen(error);
 	}
+	m_db.close();
+	m_db = QSqlDatabase();
+	QSqlDatabase::removeDatabase(dbname);
 }
 
 QString Connection::createScript(const QString& table)
