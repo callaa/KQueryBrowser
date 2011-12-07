@@ -11,6 +11,7 @@
 		<Separator />
 		<Action name="newscripttab" />
 		<Action name="openscript" />
+		<Action name="openrecentscript" />
 		<Action name="savescript" />
 		<Action name="savescriptas" />
 	</Menu>

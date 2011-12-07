@@ -17,7 +17,7 @@
 #include <QDebug>
 #include <KApplication>
 #include <KActionCollection>
-#include <KAction>
+#include <KRecentFilesAction>
 #include <KStandardAction>
 #include <KEncodingFileDialog>
 #include <KMessageBox>
@@ -102,6 +102,8 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	connect(dblist, SIGNAL(newConnection(QString)),
 			this, SLOT(newDbConnection(QString)));
 
+	readSettings();
+
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
 
@@ -124,6 +126,7 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+	writeSettings();
 	delete m_connection;
 }
 
@@ -135,6 +138,8 @@ void MainWindow::nameChange(const QString& name)
 void MainWindow::setupActions()
 {
 	KStandardAction::quit(kapp, SLOT(quit()), actionCollection());
+	m_recent = KStandardAction::openRecent(this, SLOT(openScript(KUrl)), 0);
+	actionCollection()->addAction("openrecentscript", m_recent);
 
 	KAction *newQueryTab= new KAction(KIcon("tab-new"), tr("New query"), this);
 	actionCollection()->addAction("newquerytab", newQueryTab);
@@ -175,6 +180,17 @@ void MainWindow::setupActions()
 	KAction *newConnection = new KAction(tr("New connection"), this);
 	actionCollection()->addAction("newconnection", newConnection);
 	connect(newConnection, SIGNAL(triggered()), this, SLOT(newConnection()));
+}
+
+void MainWindow::readSettings()
+{
+	m_recent->loadEntries(KGlobal::config()->group("Recent Files"));
+}
+
+void MainWindow::writeSettings()
+{
+	m_recent->saveEntries(KGlobal::config()->group("Recent Files"));
+	KGlobal::config()->sync();
 }
 
 void MainWindow::newConnection(const QUrl& url)
@@ -250,13 +266,20 @@ void MainWindow::openScript()
 {
 	KUrl url = KFileDialog::getOpenUrl(KUrl(), "*.sql|SQL scripts\n*.txt|Text files\n*|All files", this);
 
-	if(!url.isEmpty()) {
-		ScriptWidget *sw = new ScriptWidget(url, this);
-		if(sw->isValid())
-			newTab(sw, sw->documentName());
-		else
-			delete sw;
+	if(!url.isEmpty())
+		if(openScript(url))
+			m_recent->addUrl(url);
+}
+
+bool MainWindow::openScript(const KUrl& url)
+{
+	ScriptWidget *sw = new ScriptWidget(url, this);
+	if(sw->isValid()) {
+		newTab(sw, sw->documentName());
+		return true;
 	}
+	delete sw;
+	return false;
 }
 
 void MainWindow::closeTab(int index)

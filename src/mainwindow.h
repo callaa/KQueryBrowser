@@ -22,6 +22,7 @@
 
 class Connection;
 class QTabWidget;
+class KRecentFilesAction;
 
 class MainWindow : public KXmlGuiWindow, public KBookmarkOwner
 {
@@ -47,6 +48,13 @@ public slots:
 
 	//! Open a script file
 	void openScript();
+
+	/**
+	 * \brief Open the specified script
+	 * \param url script file URL
+	 * \return true on success
+	 */
+	bool openScript(const KUrl& url);
 
 	//! Save the contents of the currently open script tab
 	void saveScript();
@@ -91,11 +99,15 @@ protected slots:
 	void exportResults(QAction *action);
 private:
 	void setupActions();
+	void readSettings();
+	void writeSettings();
 	void newTab(QWidget *widget, const QString& title);
 
 	QTabWidget *m_tabs;
 	Connection *m_connection;
 	int m_querytabs;
+
+	KRecentFilesAction *m_recent;
 };
 
 #endif // MAINWINDOW_H
