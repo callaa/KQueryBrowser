@@ -24,7 +24,7 @@ class CsvExporterFactory : public ExporterFactory
 {
 public:
 	CsvExporterFactory()
-	: ExporterFactory("CSV", "csv", false, KIcon("text-csv"))
+	: ExporterFactory("CSV", "csv", false, "text-csv")
 	{
 	}
 

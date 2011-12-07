@@ -32,7 +32,7 @@ class HtmlExporterFactory : public ExporterFactory
 {
 	public:
 	HtmlExporterFactory()
-		: ExporterFactory("HTML", "html", true, KIcon("text-html"))
+		: ExporterFactory("HTML", "html", true, "text-html")
 	{
 	}
 

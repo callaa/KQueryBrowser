@@ -45,7 +45,7 @@ QActionGroup *Exporters::multiTableActions(QObject *parent) const
 	return grp;
 }
 
-ExporterFactory::ExporterFactory(const QString& format, const QString &ext, bool multitable, const KIcon &icon)
+ExporterFactory::ExporterFactory(const QString& format, const QString &ext, bool multitable, const QString &icon)
 	: m_format(format), m_ext(ext), m_multitable(multitable), m_icon(icon)
 {
 	Exporters::instance().registerExporter(this);

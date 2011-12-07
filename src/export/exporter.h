@@ -139,7 +139,7 @@ public:
 	 \param multitable can this exporter export more than one table at a time?
 	 \param icon the icon used in menus for this format
 	 */
-	ExporterFactory(const QString& format, const QString& ext, bool multitable, const KIcon &icon=KIcon());
+	ExporterFactory(const QString& format, const QString& ext, bool multitable, const QString &icon=QString());
 	virtual ~ExporterFactory() {}
 
 	/**
@@ -152,7 +152,7 @@ public:
 	 \brief Get the icon for the export format
 	 \return Icon
 	 */
-	const KIcon& icon() const { return m_icon; }
+	KIcon icon() const { return KIcon(m_icon); }
 
 	/**
 	 \brief Get the default file extension for this format
@@ -179,7 +179,7 @@ private:
 	QString m_format;
 	QString m_ext;
 	bool m_multitable;
-	KIcon m_icon;
+	QString m_icon;
 };
 
 /**
