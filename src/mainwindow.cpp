@@ -141,33 +141,33 @@ void MainWindow::setupActions()
 	m_recent = KStandardAction::openRecent(this, SLOT(openScript(KUrl)), 0);
 	actionCollection()->addAction("openrecentscript", m_recent);
 
-	KAction *newQueryTab= new KAction(KIcon("tab-new"), tr("New query"), this);
+	KAction *newQueryTab= new KAction(KIcon("tab-new"), tr("New Query"), this);
 	actionCollection()->addAction("newquerytab", newQueryTab);
 	connect(newQueryTab, SIGNAL(triggered()), this, SLOT(newQueryTab()));
 
-	KAction *newScriptTab = new KAction(KIcon("document-new"), tr("New script"), this);
+	KAction *newScriptTab = new KAction(KIcon("document-new"), tr("New Script"), this);
 	actionCollection()->addAction("newscripttab", newScriptTab);
 	connect(newScriptTab, SIGNAL(triggered()), this, SLOT(newScriptTab()));
 
-	KAction *openScript = new KAction(KIcon("document-open"), tr("Open script..."), this);
+	KAction *openScript = new KAction(KIcon("document-open"), tr("Open Script..."), this);
 	actionCollection()->addAction("openscript", openScript);
 	connect(openScript, SIGNAL(triggered()), this, SLOT(openScript()));
 
-	KAction *saveScript = new KAction(KIcon("document-save"), tr("Save script"), this);
+	KAction *saveScript = new KAction(KIcon("document-save"), tr("Save Script"), this);
 	actionCollection()->addAction("savescript", saveScript);
 	connect(saveScript, SIGNAL(triggered()), this, SLOT(saveScript()));
 	saveScript->setEnabled(false);
 
-	KAction *saveScriptAs = new KAction(KIcon("document-save-as"), tr("Save script as..."), this);
+	KAction *saveScriptAs = new KAction(KIcon("document-save-as"), tr("Save Script As..."), this);
 	actionCollection()->addAction("savescriptas", saveScriptAs);
 	connect(saveScriptAs, SIGNAL(triggered()), this, SLOT(saveScriptAs()));
 	saveScriptAs->setEnabled(false);
 
-	KAction *showTableDock = new KAction(tr("Show tables"), this);
+	KAction *showTableDock = new KAction(tr("Show Tables"), this);
 	showTableDock->setCheckable(true);
 	actionCollection()->addAction("showtables", showTableDock);
 
-	KAction *showDatabaseDock = new KAction(tr("Show databases"), this);
+	KAction *showDatabaseDock = new KAction(tr("Show Databases"), this);
 	showDatabaseDock->setCheckable(true);
 	actionCollection()->addAction("showdatabases", showDatabaseDock);
 
@@ -177,7 +177,7 @@ void MainWindow::setupActions()
 	connect(clearResultView, SIGNAL(triggered()), this, SLOT(clearResults()));
 
 
-	KAction *newConnection = new KAction(tr("New connection"), this);
+	KAction *newConnection = new KAction(tr("New Connection"), this);
 	actionCollection()->addAction("newconnection", newConnection);
 	connect(newConnection, SIGNAL(triggered()), this, SLOT(newConnection()));
 }
