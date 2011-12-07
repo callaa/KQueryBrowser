@@ -54,6 +54,8 @@ ScriptWidget::ScriptWidget(const KUrl& url, QWidget *parent) :
 
 	// Create text editor view
 	m_view = m_document->createView(this);
+	connect(m_view, SIGNAL(selectionChanged(KTextEditor::View*)),
+			this, SLOT(selectionChanged()));
 
 	// Set SQL highlight mode (TODO mysql/postgresql variant)
 	/* TODO find the best matching mode
@@ -78,8 +80,15 @@ ScriptWidget::ScriptWidget(const KUrl& url, QWidget *parent) :
 
 	// Actions
 	QAction *actExec = new QAction(KIcon("quickopen"), tr("Run"), this);
+	actExec->setToolTip(tr("Run the whole script"));
 	connect(actExec, SIGNAL(triggered()), this, SLOT(executeQuery()));
 	toolbar->addAction(actExec);
+
+	m_actrunsel = new QAction(KIcon("quickopen"), tr("Run selection"), this);
+	m_actrunsel->setToolTip(tr("Run just the selected part of the script"));
+	connect(m_actrunsel, SIGNAL(triggered()), this, SLOT(executeSelection()));
+	m_actrunsel->setEnabled(false);
+	toolbar->addAction(m_actrunsel);
 
 #if 0 // todo
 	QAction *actStep = new QAction(KIcon("debug-step-over"), tr("Step"), this);
@@ -122,6 +131,15 @@ void ScriptWidget::executeQuery()
 
 	// TODO this only executes the first statement on sqlite
 	emit doQuery(m_document->text(), 0);
+}
+
+void ScriptWidget::executeSelection()
+{
+	m_resultview->clear();
+	m_resultview->startNewQuery(QString());
+
+	// TODO this only executes the first statement on sqlite
+	emit doQuery(m_view->selectionText(), 0);
 }
 
 void ScriptWidget::queryResults(const QueryResults& results)
@@ -171,6 +189,12 @@ void ScriptWidget::scriptModifiedChanged()
 {
 	emit nameChange(documentName());
 }
+
+void ScriptWidget::selectionChanged()
+{
+	m_actrunsel->setEnabled(m_view->selection());
+}
+
 
 void ScriptWidget::showEvent(QShowEvent *e)
 {

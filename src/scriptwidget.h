@@ -99,6 +99,11 @@ public slots:
 	void executeQuery();
 
 	/**
+	 * \brief Execute the currently selected part of the script.
+	 */
+	void executeSelection();
+
+	/**
 	 * \brief Show the results of a query
 	 * \param results query results
 	 */
@@ -111,6 +116,7 @@ public slots:
 
 protected slots:
 	void scriptModifiedChanged();
+	void selectionChanged();
 
 protected:
 	void showEvent(QShowEvent *e);
@@ -121,6 +127,7 @@ private:
 	KTextEditor::Document *m_document;
 	KTextEditor::View *m_view;
 	QueryView *m_resultview;
+	QAction *m_actrunsel;
 };
 
 #endif // SCRIPTWIDGET_H
