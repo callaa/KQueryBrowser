@@ -40,10 +40,37 @@ void TableListWidget::refreshTree(const Database &db)
 	QIcon iconSys(":/icons/systable.png");
 	QIcon iconKey(":/icons/key.png");
 
+	// Before clearing the old tree, remember which schemas/tables the
+	// user had expanded.
+	QStringList openschema, opentable;
+	for(int i=0;i<m_view->topLevelItemCount();++i) {
+		const QTreeWidgetItem *ti = m_view->topLevelItem(i);
+		if(ti->data(0, Qt::UserRole)==0) {
+			if(ti->isExpanded()) {
+				openschema << ti->text(0);
+				QString prefix = ti->text(0) + ".";
+				for(int j=0;j<ti->childCount();++j) {
+					QTreeWidgetItem *c = ti->child(j);
+					if(c->isExpanded())
+						opentable << prefix + c->text(0);
+				}
+			}
+		} else {
+			if(ti->isExpanded())
+				opentable << ti->text(0);
+		}
+	}
+
+	// Clear the old tree
 	m_view->clear();
+
+	// Build the new tree
 	const bool hasSchemas = !db.noSchemas();
 	foreach(const Schema& schema, db.schemas()) {
 		QTreeWidgetItem *s=0;
+
+		// If the DBMS doesn't have schemas, show tables as
+		// the top level items.
 		if(hasSchemas) {
 			s = new QTreeWidgetItem(m_view);
 			s->setText(0, schema.name());
@@ -68,6 +95,25 @@ void TableListWidget::refreshTree(const Database &db)
 					c->setIcon(0, iconKey);
 				c->setToolTip(0, col.type());
 			}
+		}
+	}
+
+	// Re-open the schemas/tables that had been previously open
+	for(int i=0;i<m_view->topLevelItemCount();++i) {
+		QTreeWidgetItem *ti = m_view->topLevelItem(i);
+		if(ti->data(0, Qt::UserRole)==0) {
+			if(openschema.contains(ti->text(0))) {
+				ti->setExpanded(true);
+				QString prefix = ti->text(0) + ".";
+				for(int j=0;j<ti->childCount();++j) {
+					QTreeWidgetItem *c = ti->child(j);
+					if(opentable.contains(prefix + c->text(0)))
+						c->setExpanded(true);
+				}
+			}
+		} else {
+			if(opentable.contains(ti->text(0)))
+				ti->setExpanded(true);
 		}
 	}
 }
