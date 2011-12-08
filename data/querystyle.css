@@ -105,13 +105,6 @@ div.ui {
 	margin-top: 1em;
 }
 
-.ui a {
-        -webkit-appearance: button;
-        color: #000;
-        text-decoration: none;
-        padding: 0.5em;
-}
-
 .export {
 	display: inline-block;
 	border: 1px solid #bbb;

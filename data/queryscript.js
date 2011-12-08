@@ -14,17 +14,65 @@ function qb_newquery(id) {
 function qb_partialquery(id, got, expected) {
 	var ui = document.getElementById("more-results");
 	if(ui==null) {
+		// Add buttons
 		var qdiv = document.getElementById(id);
 		var ui = document.createElement("div");
 		ui.id = "more-results"
 		ui.className = "ui";
-		ui.innerHTML = '<a href="javascript:queryAbort()">Stop</a> <a href="javascript:qbrowser.queryGetMore()">Get more</a> <a href="javascript:qbrowser.queryGetAll()">Get the rest</a> <span class="status"></span>';
+		ui.innerHTML = '<button id="abortbtn">Stop</button> <button id="morebtn">Get more</button> <button id="allbtn">Get the rest</button> <span class="status"></span>';
 		qdiv.appendChild(ui);
+		document.getElementById("abortbtn").onclick = queryAbort;
+		document.getElementById("morebtn").onclick = queryGet(qbrowser.queryGetMore);
+		document.getElementById("allbtn").onclick = queryGet(qbrowser.queryGetAll);
+	} else {
+		// Re-enable buttons
+		var btns = ui.querySelectorAll("button");
+		for(var i=0;i<btns.length;++i) {
+			btns[i].disabled = false;
+		}
 	}
 	if(expected>0) {
 		ui.querySelector(".status").textContent = " (" + got + "/" + expected + ")";
 	}
 	window.scrollTo(0, document.body.scrollHeight);
+}
+
+/* Abort a query */
+function queryAbort() {
+	var btns = document.getElementById("more-results");
+	if(btns!=null) {
+		var count = btns.parentNode.querySelector("tbody").childElementCount;
+		var summary = document.createElement("p");
+		if(count==1) {
+			summary.textContent = "Query aborted after one row.";
+		} else {
+			summary.textContent = "Query aborted after " + count + " rows.";
+		}
+		btns.parentNode.appendChild(summary);
+		btns.parentNode.removeChild(btns);
+	}
+	return false;
+}
+
+/* Show spinner and execute function to get more query results. This
+ * function returns a button callback function that performs the action. */
+function queryGet(fn) {
+	return function() {
+		// Add spinner
+		var spinner = document.createElement("p");
+		spinner.className="wait";
+		this.parentNode.parentNode.appendChild(spinner);
+
+		// Disable buttons
+		var btns = this.parentNode.querySelectorAll("button");
+		for(var i=0;i<btns.length;++i) {
+			btns[i].disabled = true;
+		}
+		
+		// Execute query function
+		fn();
+		return false;
+	}
 }
 
 /* A query has finishd */
@@ -81,20 +129,5 @@ function qb_endquery(id, total) {
 function qb_show(link) {
 	qbrowser.showBigResult(link.getAttribute('data-index'));
 	return false;
-}
-
-function queryAbort() {
-	var btns = document.getElementById("more-results");
-	if(btns!=null) {
-		var count = btns.parentNode.querySelector("tbody").childElementCount;
-		var summary = document.createElement("p");
-		if(count==1) {
-			summary.textContent = "Query aborted after one row.";
-		} else {
-			summary.textContent = "Query aborted after " + count + " rows.";
-		}
-		btns.parentNode.appendChild(summary);
-		btns.parentNode.removeChild(btns);
-	}
 }
 
