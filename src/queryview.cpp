@@ -220,7 +220,7 @@ void QueryView::showResults(const QueryResults &results)
 	if(results.isMore())
 		page()->currentFrame()->evaluateJavaScript(QString("qb_partialquery(\"query-%1\", %2, %3)").arg(m_querycount).arg(m_resultsgot).arg(m_resultsexpected));
 	else
-		page()->currentFrame()->evaluateJavaScript(QString("qb_endquery(\"query-%1\", %2)").arg(m_querycount).arg(m_resultsgot));
+		page()->currentFrame()->evaluateJavaScript(QString("qb_endquery(\"query-%1\", %2)").arg(m_querycount).arg(results.isSelect() ? m_resultsgot : -1));
 }
 
 void QueryView::showBigResult(int index)
