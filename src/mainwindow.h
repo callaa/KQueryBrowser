@@ -23,6 +23,8 @@
 class Connection;
 class QTabWidget;
 class KRecentFilesAction;
+class KBookmarkDialog;
+class KBookmarkManager;
 
 class MainWindow : public KXmlGuiWindow, public KBookmarkOwner
 {
@@ -38,6 +40,9 @@ public:
 
 	//! Get the URL of the current connection
 	QString currentUrl() const;
+
+	//! Get the bookmark editor dialog
+	KBookmarkDialog *bookmarkDialog(KBookmarkManager *mgr, QWidget *parent);
 
 public slots:
 	//! Open a new query tab

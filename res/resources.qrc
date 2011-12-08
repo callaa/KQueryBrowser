@@ -4,5 +4,9 @@
         <file>table.png</file>
         <file>view.png</file>
         <file>key.png</file>
+
+        <file>mysql.png</file>
+        <file>pgsql.png</file>
+        <file>sqlite3.png</file>
     </qresource>
 </RCC>

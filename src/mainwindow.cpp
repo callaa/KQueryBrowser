@@ -38,6 +38,7 @@
 #include "tablelistwidget.h"
 #include "databaselistwidget.h"
 #include "bookmarks.h"
+#include "bookmarkdialog.h"
 #include "export/exporter.h"
 
 MainWindow::MainWindow(Connection *connection, QWidget *parent)
@@ -214,6 +215,11 @@ QString MainWindow::currentUrl() const
 {
 	// TODO use prettyUrl() and store password in KWallet
 	return m_connection->url().url();
+}
+
+KBookmarkDialog *MainWindow::bookmarkDialog(KBookmarkManager *mgr, QWidget *parent)
+{
+	return new BookmarkDialog(mgr, parent);
 }
 
 void MainWindow::openBookmark(const KBookmark& bookmark, Qt::MouseButtons mb, Qt::KeyboardModifiers km)
