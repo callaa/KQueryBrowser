@@ -48,8 +48,12 @@ function queryAbort() {
 		} else {
 			summary.textContent = "Query aborted after " + count + " rows.";
 		}
-		btns.parentNode.appendChild(summary);
-		btns.parentNode.removeChild(btns);
+		var qdiv = btns.parentNode;
+		qdiv.appendChild(summary);
+		qdiv.removeChild(btns);
+		if(count>0) {
+			addExporters(qdiv);
+		}
 	}
 	return false;
 }
@@ -78,7 +82,7 @@ function queryGet(fn) {
 /* A query has finishd */
 function qb_endquery(id, total) {
 	if(total>=0) {
-		var qdiv = document.querySelector("div.query:last-child");
+		var qdiv = document.getElementById(id);
 
 		var summary = document.createElement("p");
 		summary.className="summary";
@@ -90,31 +94,7 @@ function qb_endquery(id, total) {
 		qdiv.appendChild(summary);
 
 		if(total>0) {
-			var ediv = document.createElement("div");
-			ediv.className="export";
-			var espan = document.createElement("span");
-			espan.textContent="Export";
-			ediv.appendChild(espan);
-
-			for(var i=0;i<EXPORTERS.length;++i) {
-				var e = EXPORTERS[i];
-				var ee = document.createElement("a");
-				ee.href = "#";
-				ee.onclick = (function(format) {
-					return function() { qbrowser.exportTable(id, format); return false; };
-				})(e.format);
-
-				if(e.icon!=null) {
-					var img = document.createElement("img");
-					img.src = e.icon;
-					img.title = e.format;
-					ee.appendChild(img);
-				} else {
-					ee.textContent = e.format;
-				}
-				ediv.appendChild(ee);
-			}
-			qdiv.appendChild(ediv);
+			addExporters(qdiv);
 		}
 	}
 	var btns = document.getElementById("more-results");
@@ -124,6 +104,38 @@ function qb_endquery(id, total) {
 	window.scrollTo(0, document.body.scrollHeight);
 }
 
+/* Add result export buttons */
+function addExporters(parentEl) {
+	var id = parentEl.id;
+	var ediv = document.createElement("div");
+	ediv.className="export";
+	var espan = document.createElement("span");
+	espan.textContent="Export";
+	ediv.appendChild(espan);
+
+	for(var i=0;i<EXPORTERS.length;++i) {
+		var e = EXPORTERS[i];
+		var ee = document.createElement("a");
+		ee.href = "#";
+		ee.onclick = (function(format) {
+			return function() {
+				qbrowser.exportTable(id, format);
+				return false;
+			};
+		})(e.format);
+
+		if(e.icon!=null) {
+			var img = document.createElement("img");
+			img.src = e.icon;
+			img.title = e.format;
+			ee.appendChild(img);
+		} else {
+			ee.textContent = e.format;
+		}
+		ediv.appendChild(ee);
+	}
+	parentEl.appendChild(ediv);
+}
 
 /* Show a column's full value */
 function qb_show(link) {
