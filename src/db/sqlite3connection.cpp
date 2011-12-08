@@ -72,6 +72,7 @@ QVector<Schema> Sqlite3Connection::schemas()
 		}
 	}
 
+	// TODO get foreign keys
 	QVector<Schema> schemas(1);
 	schemas[0] = Schema(QString(), tables);
 	return schemas;

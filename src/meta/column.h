@@ -20,6 +20,106 @@
 #include <QString>
 
 /**
+ * \brief Column foreign key constraint
+ */
+class ForeignKey
+{
+public:
+	//! Foreign key update rules
+	enum Rule {
+		//! Cascade changes
+		CASCADE,
+		//! Set column to null
+		SETNULL,
+		//! Set column to its default value
+		SETDEFAULT,
+		//! Prevent changes
+		RESTRICT,
+		//! Do nothing
+		NOACTION,
+		//! Information not available (shouldn't be encountered in normal operation)
+		UNKNOWN
+	};
+
+	/**
+	 * \brief Construct a blank foreign key
+	 */
+	ForeignKey() : m_onupdate(UNKNOWN), m_ondelete(UNKNOWN) { }
+
+	/**
+	 * \brief Construct a foreign key
+	 * \param db the database of the referred column
+	 * \param schema the schema of the referred column
+	 * \param table the table of the referred column
+	 * \param column the name of the referred column
+	 * \param onupdate the ON UPDATE rule
+	 * \param ondelete the ON DELETE rule
+	 */
+	ForeignKey(const QString& db, const QString& schema, const QString& table, const QString column, Rule onupdate, Rule ondelete)
+		: m_database(db), m_schema(schema), m_table(table), m_column(column), m_onupdate(onupdate), m_ondelete(ondelete)
+	{
+	}
+
+	/**
+	 * \brief Is this a valid foreign key entry?
+	 * \return true if key descriptor is valid
+	 */
+	bool isValid() const { return !m_database.isEmpty(); }
+
+	/**
+	 * \brief The database this key refers to
+	 * \return database name
+	 */
+	const QString& database() const { return m_database; }
+
+	/**
+	 * \brief The schema this key refers to.
+	 *
+	 * This is an empty string if the DBMS doesn't support schemas.
+	 * \return schema name
+	 */
+	const QString& schema() const { return m_schema; }
+
+	/**
+	 * \brief The table this key refers to
+	 * \return table name
+	 */
+	const QString& table() const { return m_table; }
+
+	/**
+	 * \brief The column this key refers to
+	 * \return column name
+	 */
+	const QString& column() const { return m_column; }
+
+	/**
+	 * \brief The update rule
+	 * \return update rule
+	 */
+	Rule onUpdate() const { return m_onupdate; }
+
+	/**
+	 * \brief the delete rule
+	 * \return delete rule
+	 */
+	Rule onDelete() const { return m_ondelete; }
+
+	/**
+	 * \brief Get a string representation of the foreign key
+	 * \return foreign key as a human readable string
+	 */
+	QString toString() const;
+
+private:
+	QString m_database;
+	QString m_schema;
+	QString m_table;
+	QString m_column;
+	Rule m_onupdate;
+	Rule m_ondelete;
+};
+
+/**
   \brief Table column description
   */
 class Column
@@ -34,8 +134,17 @@ public:
 	//! Is this column a (part of a) primary key?
 	bool isPrimaryKey() const { return m_pk; }
 
-	//! Is this column a foreign key? TODO
-	bool isForeignKey() const { return false; }
+	//! Does this column have a foreign key constraint?
+	bool hasForeignKey() const { return m_fk.isValid(); }
+
+	/**
+	 * \brief Get this column's foreign key.
+	 *
+	 * If hasForeignKey() returns false, this will return
+	 * a blank key.
+	 * \return foreign key description
+	 */
+	const ForeignKey& foreignkey() const { return m_fk; }
 
 	/**
 	  \brief Get the type of the column.
@@ -50,12 +159,14 @@ public:
 
 	void setPk(bool pk) { m_pk = pk; }
 
+	void setFk(const ForeignKey &fk) { m_fk = fk; }
 private:
 	QString m_name;
 
 	// Extra info:
 	QString m_type;
 	bool m_pk;
+	ForeignKey m_fk;
 };
 
 #endif // COLUMN_H

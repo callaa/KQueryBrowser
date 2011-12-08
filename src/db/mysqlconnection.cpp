@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include <QDebug>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
@@ -36,6 +37,21 @@ bool MysqlConnection::isCapable(Capability capability) const
 	}
 }
 
+static ForeignKey::Rule rule2enum(const QString& rule) {
+	if(rule == "CASCADE")
+		return ForeignKey::CASCADE;
+	else if(rule=="SET NULL")
+		return ForeignKey::SETNULL;
+	else if(rule=="SET DEFAULT")
+		return ForeignKey::SETDEFAULT;
+	else if(rule=="RESTRICT")
+		return ForeignKey::RESTRICT;
+	else if(rule=="NO ACTION")
+		return ForeignKey::NOACTION;
+	else
+		return ForeignKey::UNKNOWN;
+}
+
 QVector<Schema> MysqlConnection::schemas()
 {
 	QVector<Table> tables;
@@ -55,8 +71,45 @@ QVector<Schema> MysqlConnection::schemas()
 		while(q.next()) {
 			Column c(q.value(0).toString());
 			c.setType(q.value(1).toString());
-			c.setPk(q.value(3).toBool());
+			c.setPk(q.value(3).toString() == "PRI");
 			t.columns().append(c);
+		}
+	}
+
+	// Get foreign keys
+	q.prepare("SELECT kcu.table_name, kcu.column_name, kcu.referenced_table_schema, "
+			"kcu.referenced_table_name, kcu.referenced_column_name, rc.update_rule, "
+			"rc.delete_rule "
+			"FROM information_schema.key_column_usage kcu JOIN "
+			"information_schema.referential_constraints rc "
+			"USING (constraint_schema, constraint_name) "
+			"WHERE kcu.constraint_schema=?");
+	q.bindValue(0, name());
+	q.exec();
+	while(q.next()) {
+		QString tname = q.value(0).toString(); // Name of the referring table
+		QString cname = q.value(1).toString(); // Name of the referring column
+
+		// Find table and column
+		for(int i=0;i<tables.count();++i) {
+			Table &t = tables[i];
+			if(t.name() != tname)
+				continue;
+			for(int j=0;j<t.columns().count();++j) {
+				Column &c = t.columns()[j];
+				if(c.name() != cname)
+					continue;
+
+				// Set foreign key
+				c.setFk(ForeignKey(
+							q.value(2).toString(),
+							QString(),
+							q.value(3).toString(),
+							q.value(4).toString(),
+							rule2enum(q.value(5).toString()),
+							rule2enum(q.value(6).toString())
+							));
+			}
 		}
 	}
 

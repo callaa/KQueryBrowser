@@ -79,7 +79,7 @@ QVector<Schema> PgsqlConnection::schemas()
 		table->columns().last().setType(typestr(ctype, cmaxlen));
 	}
 
-	// Get keys (TODO identify type)
+	// Get keys (TODO identify type and get foreign key details)
 	q.exec("SELECT table_schema, table_name, column_name FROM information_schema.key_column_usage");
 	while(q.next()) {
 		QString schema = q.value(0).toString();

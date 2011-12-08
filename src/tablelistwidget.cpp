@@ -93,7 +93,12 @@ void TableListWidget::refreshTree(const Database &db)
 				c->setData(0, Qt::UserRole, 2);
 				if(col.isPrimaryKey())
 					c->setIcon(0, iconKey);
-				c->setToolTip(0, col.type());
+				QString ttip = col.type();
+				if(col.hasForeignKey()) {
+					ttip = ttip + " " + col.foreignkey().toString();
+				}
+
+				c->setToolTip(0, ttip);
 			}
 		}
 	}
