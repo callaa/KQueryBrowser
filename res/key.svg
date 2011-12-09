@@ -13,10 +13,18 @@
    height="32px"
    id="svg3850"
    version="1.1"
-   inkscape:version="0.48.1 r9760"
-   sodipodi:docname="New document 3">
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="key.svg">
   <defs
-     id="defs3852" />
+     id="defs3852">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 16 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="32 : 16 : 1"
+       inkscape:persp3d-origin="16 : 10.666667 : 1"
+       id="perspective3781" />
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -24,17 +32,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.313708"
-     inkscape:cx="16.563069"
-     inkscape:cy="12.880571"
+     inkscape:zoom="5.6568542"
+     inkscape:cx="41.157285"
+     inkscape:cy="15.155077"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:grid-bbox="true"
      inkscape:document-units="px"
      inkscape:window-width="948"
-     inkscape:window-height="937"
+     inkscape:window-height="692"
      inkscape:window-x="0"
-     inkscape:window-y="35"
+     inkscape:window-y="25"
      inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
@@ -48,7 +56,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -56,9 +64,23 @@
      id="layer1"
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
-    <path
-       style="fill:#ffe300;fill-opacity:1;stroke:#e8b900;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       d="M 7 11 C 3.6862915 11 1 13.686292 1 17 C 1 20.313708 3.6862915 23 7 23 C 9.7974247 23 12.148046 21.090188 12.8125 18.5 L 26 18.5 L 26 21 L 29 21 L 29 18.5 L 31 18.5 L 31 15.5 L 12.8125 15.5 C 12.148046 12.909812 9.7974247 11 7 11 z M 7 14 C 8.6568542 14 10 15.343146 10 17 C 10 18.656854 8.6568542 20 7 20 C 5.3431458 20 4 18.656854 4 17 C 4 15.343146 5.3431458 14 7 14 z "
-       id="path4379" />
+    <g
+       id="g4309"
+       transform="matrix(0.79012737,0.79012737,-0.79012737,0.79012737,19.074792,-15.415174)">
+      <path
+         id="path3785"
+         d="m 10.125,15.03125 c -4.0760975,0 -7.375,3.298903 -7.375,7.375 0,4.076097 3.2989025,7.375 7.375,7.375 2.887236,0 5.381025,-1.64676 6.59375,-4.0625 l 0.125,0 1.28125,0 1.28125,0 1.28125,0 1.28125,0 1.25,-1.75 1.28125,1.75 1.28125,0 1.28125,-0.9375 1.28125,0.9375 1.28125,0 c 2.200046,0 5.6875,-2.698511 5.6875,-5 0.03455,-0.128951 -1.091829,-1.875 -2.109375,-1.875 l -16.609375,0 C 15.334413,16.575868 12.902965,15.03125 10.125,15.03125 z M 7.4375,19.625 c 1.5323757,0 2.78125,1.248874 2.78125,2.78125 0,1.532376 -1.2488743,2.78125 -2.78125,2.78125 -1.5323757,0 -2.78125,-1.248874 -2.78125,-2.78125 0,-1.532376 1.2488743,-2.78125 2.78125,-2.78125 z"
+         style="opacity:0.77688527;fill:#ffe300;fill-opacity:1;stroke:#e8b900;stroke-width:1.0629921;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         sodipodi:nodetypes="csscccccccccccccccccsssc" />
+      <rect
+         rx="1.1875"
+         ry="0.4375"
+         y="20.9375"
+         x="16.625"
+         height="0.875"
+         width="17.1875"
+         id="rect3795"
+         style="opacity:0.77688527;fill:#e8b900;fill-opacity:0.65811965;stroke:none" />
+    </g>
   </g>
 </svg>
