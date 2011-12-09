@@ -67,11 +67,12 @@ QVector<Schema> MysqlConnection::schemas()
 		Table &t = tables[i];
 		q.exec("explain " + t.name());
 
-		// Explanation columns are: Field, type, null, key (PRI), default, extra
+		// Explanation columns are: Field, type, null, key, default, extra
 		while(q.next()) {
 			Column c(q.value(0).toString());
 			c.setType(q.value(1).toString());
 			c.setPk(q.value(3).toString() == "PRI");
+			c.setUnique(q.value(3).toString() == "UNI");
 			t.columns().append(c);
 		}
 	}

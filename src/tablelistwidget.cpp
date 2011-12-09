@@ -39,6 +39,7 @@ void TableListWidget::refreshTree(const Database &db)
 	QIcon iconView(":/icons/view.png");
 	QIcon iconSys(":/icons/systable.png");
 	QIcon iconKey(":/icons/key.png");
+	QIcon iconUnique(":/icons/unique.png");
 
 	// Before clearing the old tree, remember which schemas/tables the
 	// user had expanded.
@@ -93,6 +94,8 @@ void TableListWidget::refreshTree(const Database &db)
 				c->setData(0, Qt::UserRole, 2);
 				if(col.isPrimaryKey())
 					c->setIcon(0, iconKey);
+				else if(col.isUnique())
+					c->setIcon(0, iconUnique);
 				QString ttip = col.type();
 				if(col.hasForeignKey()) {
 					ttip = ttip + " " + col.foreignkey().toString();

@@ -70,9 +70,23 @@ QVector<Schema> Sqlite3Connection::schemas()
 			c.setPk(q.value(5).toBool());
 			t.columns().append(c);
 		}
+
+		// Find unique indexes
+		// Index list returns three columns: seq, name, unique
+		q.exec("pragma index_list(" + t.name() + ")");
+		while(q.next()) {
+			if(q.value(2).toBool()) {
+				// index_info returns three columns: seqno, cid, name
+				QSqlQuery iq("pragma index_info(" + q.value(1).toString() + ")", m_db);
+				while(iq.next()) {
+					t.column(iq.value(2).toString())->setUnique(true);
+				}
+			}
+		}
+
+		// TODO get foreign keys
 	}
 
-	// TODO get foreign keys
 	QVector<Schema> schemas(1);
 	schemas[0] = Schema(QString(), tables);
 	return schemas;

@@ -18,12 +18,12 @@
 #include "../stringbuilder.h"
 
 Column::Column()
-	: m_pk(false)
+	: m_pk(false), m_unique(false)
 {
 }
 
 Column::Column(const QString &name)
-	: m_name(name), m_pk(false)
+	: m_name(name), m_pk(false), m_unique(false)
 {
 }
 

@@ -134,6 +134,9 @@ public:
 	//! Is this column a (part of a) primary key?
 	bool isPrimaryKey() const { return m_pk; }
 
+	//! Does this column have the UNIQUE constraint?
+	bool isUnique() const { return m_unique; }
+
 	//! Does this column have a foreign key constraint?
 	bool hasForeignKey() const { return m_fk.isValid(); }
 
@@ -159,6 +162,8 @@ public:
 
 	void setPk(bool pk) { m_pk = pk; }
 
+	void setUnique(bool unique) { m_unique = unique; }
+
 	void setFk(const ForeignKey &fk) { m_fk = fk; }
 private:
 	QString m_name;
@@ -166,6 +171,7 @@ private:
 	// Extra info:
 	QString m_type;
 	bool m_pk;
+	bool m_unique;
 	ForeignKey m_fk;
 };
 
