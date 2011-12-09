@@ -37,21 +37,6 @@ bool MysqlConnection::isCapable(Capability capability) const
 	}
 }
 
-static ForeignKey::Rule rule2enum(const QString& rule) {
-	if(rule == "CASCADE")
-		return ForeignKey::CASCADE;
-	else if(rule=="SET NULL")
-		return ForeignKey::SETNULL;
-	else if(rule=="SET DEFAULT")
-		return ForeignKey::SETDEFAULT;
-	else if(rule=="RESTRICT")
-		return ForeignKey::RESTRICT;
-	else if(rule=="NO ACTION")
-		return ForeignKey::NOACTION;
-	else
-		return ForeignKey::UNKNOWN;
-}
-
 QVector<Schema> MysqlConnection::schemas()
 {
 	QVector<Table> tables;
@@ -107,8 +92,8 @@ QVector<Schema> MysqlConnection::schemas()
 							QString(),
 							q.value(3).toString(),
 							q.value(4).toString(),
-							rule2enum(q.value(5).toString()),
-							rule2enum(q.value(6).toString())
+							ForeignKey::rulestring(q.value(5).toString()),
+							ForeignKey::rulestring(q.value(6).toString())
 							));
 			}
 		}

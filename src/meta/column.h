@@ -61,6 +61,12 @@ public:
 	}
 
 	/**
+	 * \brief
+	 * \return rule enum or UNKNOWN if unrecognized
+	 */
+	static Rule rulestring(const QString& rule);
+
+	/**
 	 * \brief Is this a valid foreign key entry?
 	 * \return true if key descriptor is valid
 	 */

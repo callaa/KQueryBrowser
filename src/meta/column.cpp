@@ -17,6 +17,22 @@
 #include "column.h"
 #include "../stringbuilder.h"
 
+ForeignKey::Rule ForeignKey::rulestring(const QString& rule)
+{
+	if(rule == "CASCADE")
+		return ForeignKey::CASCADE;
+	else if(rule=="SET NULL")
+		return ForeignKey::SETNULL;
+	else if(rule=="SET DEFAULT")
+		return ForeignKey::SETDEFAULT;
+	else if(rule=="RESTRICT")
+		return ForeignKey::RESTRICT;
+	else if(rule=="NO ACTION")
+		return ForeignKey::NOACTION;
+	else
+		return ForeignKey::UNKNOWN;
+}
+
 Column::Column()
 	: m_pk(false), m_unique(false)
 {

@@ -84,7 +84,19 @@ QVector<Schema> Sqlite3Connection::schemas()
 			}
 		}
 
-		// TODO get foreign keys
+		// Get foreign keys
+		// Result returns eight columns: id, seq, table, from, to, on_update, on_delete, match
+		q.exec("pragma foreign_key_list(" + t.name() + ")");
+		while(q.next()) {
+			t.column(q.value(3).toString())->setFk(ForeignKey(
+						name(),
+						QString(),
+						q.value(2).toString(),
+						(q.value(4).isNull() ? q.value(3) : q.value(4)).toString(),
+						ForeignKey::rulestring(q.value(5).toString()),
+						ForeignKey::rulestring(q.value(6).toString())
+						));
+		}
 	}
 
 	QVector<Schema> schemas(1);
