@@ -79,12 +79,28 @@ QVector<Schema> PgsqlConnection::schemas()
 		table->columns().last().setType(typestr(ctype, cmaxlen));
 	}
 
-	// Get keys (TODO identify type and get foreign key details)
-	q.exec("SELECT table_schema, table_name, column_name FROM information_schema.key_column_usage");
+	// Get constraints
+	q.exec("SELECT"
+			" table_schema, table_name, column_name, constraint_type, NULL, NULL, NULL, NULL, NULL, NULL"
+			" FROM information_schema.table_constraints"
+			" NATURAL JOIN information_schema.constraint_column_usage"
+			" WHERE constraint_type!='FOREIGN KEY'"
+
+			" UNION "
+
+			"SELECT"
+			" c.table_schema, c.table_name, c.column_name, 'FOREIGN KEY', rk.table_catalog, rk.table_schema, rk.table_name, rk.column_name, update_rule, delete_rule"
+			" FROM information_schema.referential_constraints"
+			" NATURAL JOIN information_schema.key_column_usage c"
+			" JOIN information_schema.key_column_usage rk ON (unique_constraint_schema=rk.constraint_schema AND unique_constraint_name=rk.constraint_name)"
+
+			" ORDER BY table_schema, table_name, column_name ASC"
+		);
 	while(q.next()) {
 		QString schema = q.value(0).toString();
 		QString table = q.value(1).toString();
 		QString column = q.value(2).toString();
+		QString type = q.value(3).toString();
 
 		// TODO optimize
 		for(int i=0;i<schemas.count();++i) {
@@ -96,7 +112,20 @@ QVector<Schema> PgsqlConnection::schemas()
 						for(int k=0;k<t.columns().count();++k) {
 							Column &c = t.columns()[k];
 							if(c.name() == column) {
-								c.setPk(true);
+								if(type == "FOREIGN KEY") {
+									c.setFk(ForeignKey(
+												q.value(4).toString(),
+												q.value(5).toString(),
+												q.value(6).toString(),
+												q.value(7).toString(),
+												ForeignKey::rulestring(q.value(8).toString()),
+												ForeignKey::rulestring(q.value(9).toString())
+												));
+								} else if(type=="PRIMARY KEY") {
+									c.setPk(true);
+								} else if(type=="UNIQUE") {
+									c.setUnique(true);
+								}
 							}
 						}
 						break;
