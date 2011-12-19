@@ -21,7 +21,7 @@
 #include <KBookmarkOwner>
 
 class Connection;
-class QTabWidget;
+class KTabWidget;
 class KRecentFilesAction;
 class KBookmarkDialog;
 class KBookmarkManager;
@@ -85,7 +85,7 @@ protected slots:
 	void nameChange(const QString& name);
 
 	//! Close a tab
-	void closeTab(int index);
+	void closeTab(QWidget *widget);
 
 	//! The "content modified" flag on a tab has changed
 	void tabNameChange(const QString& name);
@@ -108,7 +108,7 @@ private:
 	void writeSettings();
 	void newTab(QWidget *widget, const QString& title);
 
-	QTabWidget *m_tabs;
+	KTabWidget *m_tabs;
 	Connection *m_connection;
 	int m_querytabs;
 

@@ -25,9 +25,7 @@
 #include <KStandardGuiItem>
 #include <KBookmarkMenu>
 #include <KMenu>
-
-#include <QTabWidget>
-#include <QTreeView>
+#include <KTabWidget>
 
 #include "mainwindow.h"
 #include "connectiondialog.h"
@@ -56,11 +54,15 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 			this, SLOT(newScriptTab(QString)));
 
 	// Create tabs for query and script widgets. This is the central widget
-	m_tabs = new QTabWidget();
+	m_tabs = new KTabWidget();
 	setCentralWidget(m_tabs);
 	m_tabs->setMovable(true);
-	connect(m_tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-	connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
+	connect(m_tabs, SIGNAL(closeRequest(QWidget*)),
+			this, SLOT(closeTab(QWidget*)));
+	connect(m_tabs, SIGNAL(mouseDoubleClick()),
+			this, SLOT(newQueryTab()));
+	connect(m_tabs, SIGNAL(currentChanged(int)),
+			this, SLOT(currentTabChanged(int)));
 
 	newQueryTab();
 
@@ -288,9 +290,8 @@ bool MainWindow::openScript(const KUrl& url)
 	return false;
 }
 
-void MainWindow::closeTab(int index)
+void MainWindow::closeTab(QWidget *widget)
 {
-	QWidget *widget = m_tabs->widget(index);
 	ScriptWidget *sw = qobject_cast<ScriptWidget*>(widget);
 	if(sw!=0 && sw->isUnsaved()) {
 		int act = KMessageBox::warningYesNoCancel(
