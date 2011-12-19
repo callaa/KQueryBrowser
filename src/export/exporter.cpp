@@ -37,7 +37,7 @@ QActionGroup *Exporters::multiTableActions(QObject *parent) const
 	QActionGroup *grp = new QActionGroup(parent);
 	foreach(ExporterFactory *f, m_factory.values()) {
 		if(f->isMultiTable()) {
-			QAction *a = new QAction(f->icon(), QCoreApplication::tr("Export %1").arg(f->format()), grp);
+			QAction *a = new QAction(f->icon(), f->format(), grp);
 			a->setObjectName("exportresult_" + f->format());
 			a->setProperty("fileExtension", f->ext());
 		}

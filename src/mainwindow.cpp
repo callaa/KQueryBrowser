@@ -163,7 +163,7 @@ void MainWindow::setupActions()
 	saveScriptAs->setEnabled(false);
 
 	// Export submenu
-	KActionMenu *exportmenu = new KActionMenu(tr("Export results"), this);
+	KActionMenu *exportmenu = new KActionMenu(KIcon("document-export-table"), tr("Export results"), this);
 	actionCollection()->addAction("resultexportmenu", exportmenu);
 	QActionGroup *exportgroup = Exporters::instance().multiTableActions(this);
 	foreach(QAction *a, exportgroup->actions())
