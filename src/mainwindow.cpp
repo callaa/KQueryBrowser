@@ -15,6 +15,7 @@
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include <QDebug>
+#include <QInputDialog>
 #include <KApplication>
 #include <KActionCollection>
 #include <KRecentFilesAction>
@@ -63,6 +64,8 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 			this, SLOT(newQueryTab()));
 	connect(m_tabs, SIGNAL(currentChanged(int)),
 			this, SLOT(currentTabChanged(int)));
+	connect(m_tabs, SIGNAL(contextMenu(QWidget*, const QPoint&)),
+			this, SLOT(tabContextMenu(QWidget*, const QPoint&)));
 
 	newQueryTab();
 
@@ -252,6 +255,26 @@ void MainWindow::currentTabChanged(int index)
 		stateChanged("tab-script");
 }
 
+void MainWindow::tabContextMenu(QWidget *w, const QPoint &p)
+{
+	if(qobject_cast<QueryWidget*>(w)) {
+		QMenu menu;
+		menu.addAction(tr("Rename tab"));
+		if(menu.exec(p)) {
+			int index = m_tabs->indexOf(w);
+			QString name = QInputDialog::getText(this,
+					tr("Rename tab"),
+					tr("New name"),
+					QLineEdit::Normal,
+					m_tabs->tabText(index)
+					);
+			if(!name.isEmpty()) {
+				m_tabs->setTabText(index, name);
+			}
+		}
+	}
+}
+
 void MainWindow::newTab(QWidget *widget, const QString& title)
 {
 	m_connection->connectContext(widget);
@@ -414,7 +437,7 @@ void MainWindow::exportResults(QAction *action)
 		} else {
 			Exporter *exporter = Exporters::instance().get(format);
 
-			exporter->startFile(&file, filename.encoding);
+			exporter->startFile(&file, filename.encoding, m_tabs->tabText(m_tabs->currentIndex()));
 
 			TableCellIterator *iterator;
 			if(ScriptWidget *sw = qobject_cast<ScriptWidget*>(m_tabs->currentWidget()))

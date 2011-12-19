@@ -110,6 +110,8 @@ protected slots:
 
 	void currentTabChanged(int index);
 
+	void tabContextMenu(QWidget *w, const QPoint& p);
+
 	void exportResults(QAction *action);
 private:
 	void setupActions();

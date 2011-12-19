@@ -17,7 +17,7 @@ public:
 		delete m_out;
 	}
 
-	void startFile(QIODevice *file, const QString& encoding);
+	void startFile(QIODevice *file, const QString& encoding, const QString& title);
 	void beginTable(TableCellIterator *iterator);
 	void done();
 
@@ -41,7 +41,11 @@ class HtmlExporterFactory : public ExporterFactory
 
 static HtmlExporterFactory htmlexporter;
 
-void HtmlExporter::startFile(QIODevice *file, const QString& encoding)
+static QString esc(QString text) {
+        return text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
+}
+
+void HtmlExporter::startFile(QIODevice *file, const QString& encoding, const QString& title)
 {
 	// Output stream in requested encoding
 	m_out = new QTextStream(file);
@@ -56,15 +60,13 @@ void HtmlExporter::startFile(QIODevice *file, const QString& encoding)
 		QString line = m_tpl->readLine();
 		if(line.isNull() || line == "<!--MERGE-->")
 				break;
+		else if(line=="<!--TITLE-->")
+			*m_out << esc(title);
 		else if(line=="<!--CONTENT-TYPE-->")
 			*m_out << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" << encoding << "\">\n";
 		else
 			*m_out << line << '\n';
 	}
-}
-
-static QString esc(QString text) {
-        return text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
 }
 
 void HtmlExporter::beginTable(TableCellIterator *iterator)

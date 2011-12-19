@@ -106,8 +106,9 @@ public:
 	 *
 	 * \param file the file to write to
 	 * \param encoding the requested encoding (for text files)
+	 * \param title export set title
 	 */
-	virtual void startFile(QIODevice *file, const QString& encoding) = 0;
+	virtual void startFile(QIODevice *file, const QString& encoding, const QString& title) = 0;
 
 	/**
 	 \brief Start a new table.

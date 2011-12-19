@@ -306,7 +306,7 @@ void QueryView::exportTable(const QString& id, const QString& format)
 
 			Exporter *exporter = Exporters::instance().get(format);
 
-			exporter->startFile(&file, filename.encoding);
+			exporter->startFile(&file, filename.encoding, "");
 
 			// Find the table and export just that one
 			while(iterator.nextTable()) {

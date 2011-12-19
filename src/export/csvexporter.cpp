@@ -11,7 +11,7 @@ public:
 	CsvExporter() : m_out(0) { }
 	~CsvExporter() { delete m_out; }
 
-	void startFile(QIODevice *file, const QString& encoding);
+	void startFile(QIODevice *file, const QString& encoding, const QString& title);
 	void beginTable(TableCellIterator *iterator);
 	void done();
 
@@ -33,8 +33,9 @@ public:
 
 static CsvExporterFactory factory;
 
-void CsvExporter::startFile(QIODevice *file, const QString& encoding)
+void CsvExporter::startFile(QIODevice *file, const QString& encoding, const QString& title)
 {
+	Q_UNUSED(title);
 	// Output stream in requested encoding
 	m_out = new QTextStream(file);
 	m_out->setCodec(QTextCodec::codecForName(encoding.toAscii()));
