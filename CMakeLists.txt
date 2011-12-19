@@ -41,6 +41,7 @@ SET(kquerybrowser_RCCS
 kde4_add_ui_files(kquerybrowser_SRCS
 	ui/connectiondialog.ui
 	ui/valueviewwidget.ui
+	ui/findwidget.ui
 )
 
 qt4_add_resources(kquerybrowser_SRCS ${kquerybrowser_RCCS})

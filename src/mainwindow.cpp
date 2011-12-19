@@ -110,11 +110,6 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	// Set up XML GUI
 	setupGUI(Default, "kquerybrowserui.rc");
 
-	QActionGroup *exportgroup = Exporters::instance().multiTableActions(this);
-	plugActionList("resultexports", exportgroup->actions());
-	connect(exportgroup, SIGNAL(triggered(QAction*)),
-			this, SLOT(exportResults(QAction*)));
-
 	KMenu *bmmenu = findChild<KMenu*>("bookmarks");
 	KBookmarkMenu *bmm = new KBookmarkMenu(
 			Bookmarks::manager(),
@@ -140,6 +135,7 @@ void MainWindow::nameChange(const QString& name)
 
 void MainWindow::setupActions()
 {
+	// File menu actions
 	KStandardAction::quit(kapp, SLOT(quit()), actionCollection());
 	m_recent = KStandardAction::openRecent(this, SLOT(openScript(KUrl)), 0);
 	actionCollection()->addAction("openrecentscript", m_recent);
@@ -166,6 +162,26 @@ void MainWindow::setupActions()
 	connect(saveScriptAs, SIGNAL(triggered()), this, SLOT(saveScriptAs()));
 	saveScriptAs->setEnabled(false);
 
+	// Export submenu
+	KActionMenu *exportmenu = new KActionMenu(tr("Export results"), this);
+	actionCollection()->addAction("resultexportmenu", exportmenu);
+	QActionGroup *exportgroup = Exporters::instance().multiTableActions(this);
+	foreach(QAction *a, exportgroup->actions())
+		exportmenu->addAction(a);
+	connect(exportgroup, SIGNAL(triggered(QAction*)),
+			this, SLOT(exportResults(QAction*)));
+
+
+	// Edit menu actions
+	KStandardAction::find(this, SLOT(search()), actionCollection());
+	KStandardAction::findNext(this, SLOT(findNext()), actionCollection());
+	KStandardAction::findPrev(this, SLOT(findPrev()), actionCollection());
+
+	KAction *clearResultView = new KAction(tr("Clear results"), this);
+	actionCollection()->addAction("resultsclear", clearResultView);
+	connect(clearResultView, SIGNAL(triggered()), this, SLOT(clearResults()));
+
+	// Settings menu actions
 	KAction *showTableDock = new KAction(tr("Show Tables"), this);
 	showTableDock->setCheckable(true);
 	actionCollection()->addAction("showtables", showTableDock);
@@ -174,12 +190,7 @@ void MainWindow::setupActions()
 	showDatabaseDock->setCheckable(true);
 	actionCollection()->addAction("showdatabases", showDatabaseDock);
 
-
-	KAction *clearResultView = new KAction(tr("Clear"), this);
-	actionCollection()->addAction("resultsclear", clearResultView);
-	connect(clearResultView, SIGNAL(triggered()), this, SLOT(clearResults()));
-
-
+	// Other actions
 	KAction *newConnection = new KAction(tr("New Connection"), this);
 	actionCollection()->addAction("newconnection", newConnection);
 	connect(newConnection, SIGNAL(triggered()), this, SLOT(newConnection()));
@@ -324,6 +335,22 @@ void MainWindow::clearResults()
 {
 	QMetaObject::invokeMethod(m_tabs->currentWidget(), "clearResults", Qt::DirectConnection);
 }
+
+void MainWindow::search()
+{
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "showSearch", Qt::DirectConnection);
+}
+
+void MainWindow::findNext()
+{
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "findNext", Qt::DirectConnection);
+}
+
+void MainWindow::findPrev()
+{
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "findPrev", Qt::DirectConnection);
+}
+
 
 void MainWindow::saveScript()
 {

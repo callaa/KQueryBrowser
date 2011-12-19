@@ -77,6 +77,15 @@ public slots:
 	//! Show new connection dialog
 	void newConnection(const QUrl& url = QUrl());
 
+	//! Search text in currently active tab
+	void search();
+
+	//! Find next occurrence of current search text
+	void findNext();
+
+	//! Find previous occurrence of current search text
+	void findPrev();
+
 protected slots:
 	/**
 	 * \brief Connection name has changed

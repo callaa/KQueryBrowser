@@ -8,17 +8,18 @@
 <MenuBar>
 	<Menu name="file" >
 		<Action name="newquerytab" />
-		<Separator />
 		<Action name="newscripttab" />
+		<Separator />
 		<Action name="openscript" />
 		<Action name="openrecentscript" />
+		<Separator />
 		<Action name="savescript" />
 		<Action name="savescriptas" />
+		<Action name="resultexportmenu" />
 	</Menu>
-	<Menu name="results"><text>Results</text>
+
+	<Menu name="edit">
 		<Action name="resultsclear" />
-		<Separator />
-		<ActionList name="resultexports" />
 	</Menu>
 
 	<Menu name="bookmarks" noMerge="1"><text>Bookmarks</text>
@@ -36,6 +37,7 @@
 	<Action name="clear" />
 </ToolBar>
 -->
+
 <State name="tab-script">
 	<enable>
 		<Action name="savescript" />

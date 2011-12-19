@@ -24,6 +24,7 @@
 #include "queryview.h"
 #include "sqllineedit.h"
 #include "db/queryresults.h"
+#include "ui_findwidget.h"
 
 QueryWidget::QueryWidget(QWidget *parent) :
 	QWidget(parent), m_moreavailable(false)
@@ -36,12 +37,44 @@ QueryWidget::QueryWidget(QWidget *parent) :
 	m_query = new SqlLineEdit(this);
 	connect(m_query, SIGNAL(returnPressed(QString)), this, SLOT(doQuery(QString)));
 
+	// Find in results widget
+	m_find = new QWidget(this);
+	m_findui = new Ui::FindWidget;
+	m_findui->setupUi(m_find);
+	m_find->hide();
+
+	connect(m_findui->findtext, SIGNAL(textChanged(QString)),
+			this, SLOT(findNext()));
+	connect(m_findui->highlightall, SIGNAL(toggled(bool)),
+			this, SLOT(findNext()));
+	connect(m_findui->casesensitive, SIGNAL(toggled(bool)),
+			this, SLOT(findNext()));
+
+	m_findui->closebutton->setIcon(KIcon("dialog-close"));
+	connect(m_findui->closebutton, SIGNAL(clicked(bool)),
+			m_find, SLOT(hide()));
+
+	m_findui->prevbutton->setIcon(KIcon("go-previous"));
+	connect(m_findui->nextbutton, SIGNAL(clicked(bool)),
+			this, SLOT(findNext()));
+	m_findui->nextbutton->setIcon(KIcon("go-next"));
+	connect(m_findui->prevbutton, SIGNAL(clicked(bool)),
+			this, SLOT(findPrev()));
+
 	// Finish up.
 	QVBoxLayout *layout = new QVBoxLayout();
 	layout->addWidget(m_view);
+	layout->addWidget(m_find);
 	layout->addWidget(m_query);
 
 	setLayout(layout);
+}
+
+void QueryWidget::showSearch()
+{
+	m_find->show();
+	m_findui->findtext->setFocus();
+	m_findui->findtext->selectAll();
 }
 
 TableCellIterator *QueryWidget::tableIterator() const
@@ -66,6 +99,36 @@ void QueryWidget::doQuery(const QString& q)
 		m_view->startNewQuery(q);
 		int limit = KGlobal::config()->group("view").readEntry("resultsperpage", QueryView::DEFAULT_PAGESIZE);
 		emit doQuery(q, limit);
+	}
+}
+
+void QueryWidget::findNext()
+{
+	findInPage(true);
+}
+
+void QueryWidget::findPrev()
+{
+	findInPage(false);
+}
+
+void QueryWidget::findInPage(bool forward)
+{
+	if(!m_find->isVisible())
+		showSearch();
+
+	QWebPage::FindFlags flags = QWebPage::FindWrapsAroundDocument;
+	if(m_findui->casesensitive->isChecked())
+		flags |= QWebPage::FindCaseSensitively;
+	if(m_findui->highlightall->isChecked())
+		flags |= QWebPage::HighlightAllOccurrences;
+	if(!forward)
+		flags |= QWebPage::FindBackward;
+
+	if(m_view->findText(m_findui->findtext->text(), flags)) {
+		// Found text
+	} else {
+		// Not found
 	}
 }
 

@@ -24,6 +24,17 @@ class SqlLineEdit;
 class QueryResults;
 class TableCellIterator;
 
+namespace Ui {
+	class FindWidget;
+}
+
+/**
+ * \brief A tab widget for interactive querying
+ *
+ * This widget contains a large, query result widget, a hidable
+ * search widget (for searching inside the results)
+ * and a line edit box for entering SQL code.
+ */
 class QueryWidget : public QWidget
 {
     Q_OBJECT
@@ -51,19 +62,50 @@ signals:
 	void getMoreResults(int limit);
 
 public slots:
+	/**
+	 * \brief Show query results
+	 * \param results query results
+	 */
 	void queryResults(const QueryResults& results);
+
+	/**
+	 * \brief Clear results view
+	 */
 	void clearResults();
 
-protected slots:
+	/**
+	 * \brief Show the controls for searching in results
+	 *
+	 */
+	void showSearch();
 
+	/**
+	 * \brief Find the next match in the result view
+	 *
+	 * This will display the search bar if it is currently hidden.
+	 */
+	void findNext();
+
+	/**
+	 * \brief Find the previous match in the result view
+	 *
+	 * This will display the search bar if it is currently hidden.
+	 */
+	void findPrev();
+
+protected slots:
 	void doQuery(const QString& query);
 
 protected:
 	void showEvent(QShowEvent *e);
 
 private:
+	void findInPage(bool forward);
+
 	QueryView *m_view;
 	SqlLineEdit *m_query;
+	QWidget *m_find;
+	Ui::FindWidget *m_findui;
 	bool m_moreavailable;
 };
 
