@@ -19,6 +19,7 @@
 
 #include <KGlobal>
 #include <KConfigGroup>
+#include <KColorScheme>
 
 #include "querywidget.h"
 #include "queryview.h"
@@ -41,6 +42,7 @@ QueryWidget::QueryWidget(QWidget *parent) :
 	m_find = new QWidget(this);
 	m_findui = new Ui::FindWidget;
 	m_findui->setupUi(m_find);
+	m_find->setMaximumHeight(m_findui->findtext->height());
 	m_find->hide();
 
 	connect(m_findui->findtext, SIGNAL(textChanged(QString)),
@@ -125,11 +127,17 @@ void QueryWidget::findInPage(bool forward)
 	if(!forward)
 		flags |= QWebPage::FindBackward;
 
+	QBrush text;
 	if(m_view->findText(m_findui->findtext->text(), flags)) {
 		// Found text
+		text = KColorScheme(QPalette::Normal).foreground(KColorScheme::NormalText);
 	} else {
 		// Not found
+		text = KColorScheme(QPalette::Normal).foreground(KColorScheme::NegativeText);
 	}
+	QPalette pal;
+	pal.setBrush(QPalette::Text, text);
+	m_findui->findtext->setPalette(pal);
 }
 
 void QueryWidget::queryResults(const QueryResults &results)
