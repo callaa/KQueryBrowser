@@ -32,6 +32,7 @@ set(kquerybrowser_SRCS
 	src/stringbuilder.cpp
 	src/bookmarks.cpp
 	src/bookmarkdialog.cpp
+	src/sqlcompletion.cpp
 )
 
 SET(kquerybrowser_RCCS

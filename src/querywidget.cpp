@@ -18,12 +18,14 @@
 #include <QVBoxLayout>
 
 #include <KGlobal>
+#include <KGlobalSettings>
 #include <KConfigGroup>
 #include <KColorScheme>
 
 #include "querywidget.h"
 #include "queryview.h"
 #include "sqllineedit.h"
+#include "sqlcompletion.h"
 #include "db/queryresults.h"
 #include "ui_findwidget.h"
 
@@ -37,6 +39,14 @@ QueryWidget::QueryWidget(QWidget *parent) :
 	// The query entry box
 	m_query = new SqlLineEdit(this);
 	connect(m_query, SIGNAL(returnPressed(QString)), this, SLOT(doQuery(QString)));
+
+	// Completer for the query entry box
+	SqlCompletion *c = new SqlCompletion();
+	c->setIgnoreCase(true);
+	connect(this, SIGNAL(dbStructure(const Database&)),
+			c, SLOT(refreshModel(const Database&)));
+	m_query->setCompletionObject(c);
+	m_query->setCompletionMode(KGlobalSettings::CompletionAuto);
 
 	// Find in results widget
 	m_find = new QWidget(this);

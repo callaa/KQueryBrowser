@@ -290,7 +290,10 @@ void MainWindow::newTab(QWidget *widget, const QString& title)
 
 void MainWindow::newQueryTab()
 {
-	newTab(new QueryWidget(this), tr("Query %1").arg(++m_querytabs));
+	QueryWidget *qw = new QueryWidget(this);
+	connect(m_connection, SIGNAL(dbStructure(const Database&)),
+			qw, SIGNAL(dbStructure(const Database&)));
+	newTab(qw, tr("Query %1").arg(++m_querytabs));
 }
 
 void MainWindow::newScriptTab(const QString& content)

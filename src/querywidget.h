@@ -23,6 +23,7 @@ class QueryView;
 class SqlLineEdit;
 class QueryResults;
 class TableCellIterator;
+class Database;
 
 namespace Ui {
 	class FindWidget;
@@ -60,6 +61,14 @@ public:
 signals:
 	void doQuery(const QString& query, int limit);
 	void getMoreResults(int limit);
+
+	/**
+	 * \brief Refresh database structure
+	 *
+	 * This is internally reconnected to the SQL completer object.
+	 * \param db the new database structure
+	 */
+	void dbStructure(const Database &db);
 
 public slots:
 	/**
