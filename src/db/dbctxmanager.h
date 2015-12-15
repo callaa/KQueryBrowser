@@ -21,8 +21,13 @@
 
 class QStringList;
 
+namespace meta {
+	class Database;
+}
+
+namespace db {
+
 class Connection;
-class Database;
 
 class DbCtxManager : public QObject
 {
@@ -31,7 +36,7 @@ public:
 	explicit DbCtxManager(Connection *connection);
 
 signals:
-	void dbStructure(const Database& db);
+	void dbStructure(const meta::Database& db);
 	void dbList(const QStringList& databases, const QString& current);
 	void newScript(const QString& script);
 
@@ -47,5 +52,7 @@ private:
 	Connection *m_connection;
 
 };
+
+}
 
 #endif // DBCTXMANAGER_H

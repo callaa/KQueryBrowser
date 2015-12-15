@@ -17,13 +17,15 @@
 #ifndef SQLITE3CONNECTION_H
 #define SQLITE3CONNECTION_H
 
-#include "connection.h"
+#include "../connection.h"
+
+namespace db {
 
 class Sqlite3Connection : public Connection
 {
     Q_OBJECT
 public:
-	Sqlite3Connection(const KUrl& url, QObject *parent);
+	Sqlite3Connection(const QUrl& url, QObject *parent);
 
 	QString name() const;
 	bool isCapable(Capability capability) const;
@@ -33,9 +35,11 @@ protected:
 
 	void prepareConnection(QSqlDatabase &db);
 
-	QVector<Schema> schemas();
+	QVector<meta::Schema> schemas();
 	QStringList databases();
 	QString createScript(const QString& table);
 };
+
+}
 
 #endif // SQLITE3CONNECTION_H

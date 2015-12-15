@@ -18,15 +18,16 @@
 #define SCRIPTWIDGET_H
 
 #include <QWidget>
-#include <KUrl>
+#include <QUrl>
 
 namespace KTextEditor {
 	class View;
 	class Document;
 }
-
+namespace db {
+	class QueryResults;
+}
 class QueryView;
-class QueryResults;
 class TableCellIterator;
 
 /**
@@ -39,7 +40,7 @@ class ScriptWidget : public QWidget
 {
     Q_OBJECT
 public:
-	ScriptWidget(const KUrl &url, QWidget *parent);
+	ScriptWidget(const QUrl &url, QWidget *parent);
 
 	//! Was initialization succesful
 	bool isValid() const;
@@ -61,9 +62,9 @@ public:
 	 * \brief Save the script with a new name
 	 * \return true on success
 	 */
-	bool saveAs(const KUrl& url);
+	bool saveAs(const QUrl& url);
 
-	const KUrl& documentUrl() const { return m_documenturl; }
+	const QUrl& documentUrl() const { return m_documenturl; }
 	QString documentName() const;
 	bool isUnsaved() const;
 
@@ -107,7 +108,7 @@ public slots:
 	 * \brief Show the results of a query
 	 * \param results query results
 	 */
-	void queryResults(const QueryResults& results);
+	void queryResults(const db::QueryResults& results);
 
 	/**
 	 * \brief Clear away all query results
@@ -123,7 +124,7 @@ protected:
 
 private:
 
-	KUrl m_documenturl;
+	QUrl m_documenturl;
 	KTextEditor::Document *m_document;
 	KTextEditor::View *m_view;
 	QueryView *m_resultview;

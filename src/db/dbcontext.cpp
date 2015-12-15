@@ -26,6 +26,8 @@
 #include "dbcontext.h"
 #include "queryresults.h"
 
+namespace db {
+
 DbContext::DbContext(QObject *target, QSqlDatabase &db, QObject *parent) :
 	QObject(parent), m_db(db), m_query(0), m_target(target)
 {
@@ -79,7 +81,7 @@ void DbContext::getNewResults(int limit)
 		res->columns.resize(cols);
 		for(int i=0;i<cols;++i) {
 			QSqlField f = m_query->record().field(i);
-			res->columns[i] = Column(f.name());
+			res->columns[i] = meta::Column(f.name());
 			res->columns[i].setType(QVariant::typeToName(f.type()));
 		}
 
@@ -142,3 +144,6 @@ void DbContext::gatherRows(QueryResultsData *res, int cols, int limit)
 	}
 	res->more = m_query->isValid();
 }
+
+}
+

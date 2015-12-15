@@ -21,6 +21,9 @@
 
 class QSqlDatabase;
 class QSqlQuery;
+
+namespace db {
+
 class QueryResults;
 class QueryResultsData;
 class Tables;
@@ -40,7 +43,8 @@ public:
 	bool isForTarget(const QObject *target) const { return m_target == target; }
 
 signals:
-	void results(const QueryResults& results);
+	// note: namespace specified so it can be used with string based signals and slots
+	void results(const db::QueryResults& results);
 
 public slots:
 	/**
@@ -79,5 +83,7 @@ private:
 	QObject *m_target;
 
 };
+
+}
 
 #endif // DBCONTEXT_H

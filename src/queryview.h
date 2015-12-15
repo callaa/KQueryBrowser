@@ -22,7 +22,9 @@
 #include <QVariant>
 #include <QPair>
 
-class QueryResults;
+namespace db {
+	class QueryResults;
+}
 class TableCellIterator;
 
 // Pair of column name and data
@@ -51,7 +53,7 @@ public:
 	/**
 	  \brief Show the results of a query.
 	  */
-	void showResults(const QueryResults& results);
+	void showResults(const db::QueryResults& results);
 
 	/**
 	 * \brief Return an iterator for exporting view contents

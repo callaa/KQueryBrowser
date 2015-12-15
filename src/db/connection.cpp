@@ -21,13 +21,15 @@
 #include "connection.h"
 #include "dbctxmanager.h"
 
-#include "sqlite3connection.h"
-#include "mysqlconnection.h"
-#include "pgsqlconnection.h"
+#include "backend/sqlite3connection.h"
+#include "backend/mysqlconnection.h"
+#include "backend/pgsqlconnection.h"
+
+namespace db {
 
 int Connection::m_count = 0;
 
-Connection::Connection(const KUrl& url, QObject *parent) :
+Connection::Connection(const QUrl& url, QObject *parent) :
 	QThread(parent), m_url(url)
 {
 }
@@ -38,7 +40,7 @@ Connection::~Connection()
 	wait();
 }
 
-Connection *Connection::create(const KUrl& url, QObject *parent)
+Connection *Connection::create(const QUrl& url, QObject *parent)
 {
 	if(url.scheme() == "sqlite3")
 		return new Sqlite3Connection(url, parent);
@@ -50,13 +52,13 @@ Connection *Connection::create(const KUrl& url, QObject *parent)
 		return 0;
 }
 
-KUrl Connection::url() const
+QUrl Connection::url() const
 {
 	QMutexLocker l(const_cast<QMutex*>(&m_urlmutex));
 	return m_url;
 }
 
-void Connection::changeUrl(const KUrl& url)
+void Connection::changeUrl(const QUrl& url)
 {
 	{
 		QMutexLocker l(&m_urlmutex);
@@ -90,22 +92,22 @@ void Connection::run()
 
 	if(m_db.open()) {
 		DbCtxManager *ctxman = new DbCtxManager(this);
-		connect(this, SIGNAL(needNewContext(QObject*)),
-				ctxman, SLOT(createContext(QObject*)), Qt::BlockingQueuedConnection);
-		connect(this, SIGNAL(needDbStructure()),
-				ctxman, SLOT(getDbStructure()), Qt::QueuedConnection);
-		connect(this, SIGNAL(needDbList()),
-				ctxman, SLOT(getDbList()), Qt::QueuedConnection);
-		connect(this, SIGNAL(needCreateTable(QString)),
-				ctxman, SLOT(makeCreateTable(QString)), Qt::QueuedConnection);
-		connect(this, SIGNAL(switchDatabase(QString)),
-				ctxman, SLOT(switchDatabase(QString)), Qt::QueuedConnection);
-		connect(ctxman, SIGNAL(dbStructure(Database)),
-				this, SIGNAL(dbStructure(Database)), Qt::QueuedConnection);
-		connect(ctxman, SIGNAL(dbList(QStringList,QString)),
-				this, SIGNAL(dbList(QStringList, QString)), Qt::QueuedConnection);
-		connect(ctxman, SIGNAL(newScript(QString)),
-				this, SIGNAL(newScript(QString)), Qt::QueuedConnection);
+		connect(this, &Connection::needNewContext,
+				ctxman, &DbCtxManager::createContext, Qt::BlockingQueuedConnection);
+		connect(this, &Connection::needDbStructure,
+				ctxman, &DbCtxManager::getDbStructure, Qt::QueuedConnection);
+		connect(this, &Connection::needDbList,
+				ctxman, &DbCtxManager::getDbList, Qt::QueuedConnection);
+		connect(this, &Connection::needCreateTable,
+				ctxman, &DbCtxManager::makeCreateTable, Qt::QueuedConnection);
+		connect(this, &Connection::switchDatabase,
+				ctxman, &DbCtxManager::switchDatabase, Qt::QueuedConnection);
+		connect(ctxman, &DbCtxManager::dbStructure,
+				this, &Connection::dbStructure, Qt::QueuedConnection);
+		connect(ctxman, &DbCtxManager::dbList,
+				this, &Connection::dbList, Qt::QueuedConnection);
+		connect(ctxman, &DbCtxManager::newScript,
+				this, &Connection::newScript, Qt::QueuedConnection);
 		emit opened();
 
 		exec();
@@ -133,5 +135,7 @@ bool Connection::selectDatabase(const QString& database)
 	Q_UNUSED(database);
 	qWarning("selectDatabase() not implemented for this connection type!");
 	return false;
+}
+
 }
 

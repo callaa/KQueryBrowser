@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ConnectionDialog</class>
- <widget class="QWidget" name="ConnectionDialog">
+ <widget class="QDialog" name="ConnectionDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>211</height>
+    <height>291</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -76,11 +76,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="KUrlRequester" name="filepath">
-         <property name="fileDialogModality">
-          <enum>Qt::WindowModal</enum>
-         </property>
-        </widget>
+        <widget class="KUrlRequester" name="filepath"/>
        </item>
       </layout>
      </widget>
@@ -94,7 +90,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="KLineEdit" name="servername"/>
+        <widget class="QLineEdit" name="servername"/>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_2">
@@ -104,7 +100,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="KLineEdit" name="serverport">
+        <widget class="QLineEdit" name="serverport">
          <property name="maximumSize">
           <size>
            <width>60</width>
@@ -114,7 +110,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="KLineEdit" name="username">
+        <widget class="QLineEdit" name="username">
          <property name="maximumSize">
           <size>
            <width>150</width>
@@ -124,14 +120,14 @@
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="KLineEdit" name="password">
+        <widget class="QLineEdit" name="password">
          <property name="maximumSize">
           <size>
            <width>150</width>
            <height>16777215</height>
           </size>
          </property>
-         <property name="passwordMode">
+         <property name="passwordMode" stdset="0">
           <bool>true</bool>
          </property>
         </widget>
@@ -158,7 +154,7 @@
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="KLineEdit" name="dbname">
+        <widget class="QLineEdit" name="dbname">
          <property name="maximumSize">
           <size>
            <width>200</width>
@@ -171,6 +167,13 @@
      </widget>
     </widget>
    </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -178,13 +181,26 @@
    <class>KUrlRequester</class>
    <extends>QFrame</extends>
    <header>kurlrequester.h</header>
-  </customwidget>
-  <customwidget>
-   <class>KLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>klineedit.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>ConnectionDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>104</x>
+     <y>264</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>92</x>
+     <y>289</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

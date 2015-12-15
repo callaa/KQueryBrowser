@@ -38,7 +38,7 @@ void CsvExporter::startFile(QIODevice *file, const QString& encoding, const QStr
 	Q_UNUSED(title);
 	// Output stream in requested encoding
 	m_out = new QTextStream(file);
-	m_out->setCodec(QTextCodec::codecForName(encoding.toAscii()));
+	m_out->setCodec(QTextCodec::codecForName(encoding.toUtf8()));
 }
 
 void CsvExporter::printRow(const QStringList &columns)

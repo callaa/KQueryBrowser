@@ -21,9 +21,13 @@
 
 class QueryView;
 class SqlLineEdit;
-class QueryResults;
 class TableCellIterator;
-class Database;
+namespace db {
+	class QueryResults;
+}
+namespace meta {
+	class Database;
+}
 
 namespace Ui {
 	class FindWidget;
@@ -68,14 +72,14 @@ signals:
 	 * This is internally reconnected to the SQL completer object.
 	 * \param db the new database structure
 	 */
-	void dbStructure(const Database &db);
+	void dbStructure(const meta::Database &db);
 
 public slots:
 	/**
 	 * \brief Show query results
 	 * \param results query results
 	 */
-	void queryResults(const QueryResults& results);
+	void queryResults(const db::QueryResults& results);
 
 	/**
 	 * \brief Clear results view

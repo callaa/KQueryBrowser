@@ -2,11 +2,13 @@
 #define EXPORTER_H
 
 #include <QHash>
-#include <KIcon>
+#include <QIcon>
 
 class QActionGroup;
 class QObject;
-class Column;
+namespace meta {
+	class Column;
+}
 
 /**
  * \brief An iterator for table rows/columns.
@@ -46,7 +48,7 @@ public:
 	 *
 	 * Note. Not all column metadata may be available.
 	 */
-	virtual const Column& header(int column) const = 0;
+	virtual const meta::Column& header(int column) const = 0;
 
 	/**
 	 * \brief Get the query string for the results
@@ -153,7 +155,7 @@ public:
 	 \brief Get the icon for the export format
 	 \return Icon
 	 */
-	KIcon icon() const { return KIcon(m_icon); }
+	QIcon icon() const { return QIcon::fromTheme(m_icon); }
 
 	/**
 	 \brief Get the default file extension for this format

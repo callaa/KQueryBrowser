@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QDebug>
-#include <QUrl>
-
-#include <KMessageBox>
-#include <KBookmarkMenu>
-#include <KActionCollection>
-
 #include "connectiondialog.h"
 #include "ui_connectiondialog.h"
 #include "mainwindow.h"
 #include "bookmarks.h"
 
 #include "db/connection.h"
+
+#include <QDebug>
+#include <QUrl>
+#include <QMenu>
+
+#include <KMessageBox>
+#include <KBookmarkMenu>
+#include <KActionCollection>
 
 struct ConType {
 	const char *name;
@@ -40,29 +41,28 @@ static const ConType CONTYPES[] = {
 };
 
 ConnectionDialog::ConnectionDialog(QWidget *parent) :
-	KDialog(parent),
+	QDialog(parent),
 	m_ui(new Ui::ConnectionDialog),
-	m_connection(0)
+	m_connection(nullptr)
 {
 	setAttribute(Qt::WA_DeleteOnClose, true);
-	setCaption(tr("Open database connection"));
-	setWindowIcon(KIcon("kquerybrowser"));
+	setWindowTitle(tr("Open database connection"));
+	setWindowIcon(QIcon::fromTheme("kquerybrowser"));
 
-	QWidget *mainwidget = new QWidget(this);
-	m_ui->setupUi(mainwidget);
+	m_ui->setupUi(this);
 	for(unsigned int i=0;i<sizeof CONTYPES / sizeof CONTYPES[0];++i) {
 		m_ui->dbtype->addItem(CONTYPES[i].name);
 	}
 	connect(m_ui->dbtype, SIGNAL(currentIndexChanged(int)), this, SLOT(typeSelected(int)));
 
-	KMenu *bmm = new KMenu(this);
+	QMenu *bmm = new QMenu(this);
 	KActionCollection *bmacts = new KActionCollection(this);
 	KBookmarkMenu *bm = new KBookmarkMenu(Bookmarks::manager(), this, bmm, bmacts);
 	bm->setParent(bmm);
 	m_ui->bookmarkbtn->setMenu(bmm);
-	m_ui->bookmarkbtn->setIcon(KIcon("bookmarks"));
+	m_ui->bookmarkbtn->setIcon(QIcon::fromTheme("bookmarks"));
 
-	setMainWidget(mainwidget);
+	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &ConnectionDialog::openConnection);
 }
 
 ConnectionDialog::~ConnectionDialog()
@@ -108,9 +108,9 @@ bool ConnectionDialog::setUrl(const QUrl& url)
 	return ok;
 }
 
-ConnectionDialog *ConnectionDialog::open(const QUrl& url)
+ConnectionDialog *ConnectionDialog::openDialog(const QUrl& url)
 {
-	ConnectionDialog *dlg = new ConnectionDialog();
+	ConnectionDialog *dlg = new ConnectionDialog;
 
 	bool ok = false;
 	if(!url.isEmpty())
@@ -121,15 +121,6 @@ ConnectionDialog *ConnectionDialog::open(const QUrl& url)
 		dlg->openConnection();
 
 	return dlg;
-}
-
-void ConnectionDialog::slotButtonClicked(int button)
-{
-	if(button==KDialog::Ok) {
-		openConnection();
-	} else {
-		KDialog::slotButtonClicked(button);
-	}
 }
 
 void ConnectionDialog::opened()
@@ -145,17 +136,16 @@ void ConnectionDialog::failed(const QString &message)
 {
 	QApplication::restoreOverrideCursor();
 	delete m_connection;
-	enableButtonOk(true);
-	enableButtonCancel(true);
+	m_ui->buttonBox->setEnabled(true);
 	KMessageBox::detailedError(this,tr("Couldn't open database connection!"), message);
 }
 
 void ConnectionDialog::openConnection()
 {
 	// Build the URL for the connection
-	KUrl url;
+	QUrl url;
 	if(m_ui->dbtype->currentIndex()==0) {
-		url = KUrl("sqlite3:" + m_ui->filepath->text());
+		url = QUrl("sqlite3:" + m_ui->filepath->text());
 	} else {
 		if(m_ui->dbtype->currentIndex()==1)
 			url.setScheme("mysql");
@@ -173,11 +163,15 @@ void ConnectionDialog::openConnection()
 			url.setPort(port);
 		url.setUserName(m_ui->username->text());
 		url.setPassword(m_ui->password->text());
-		url.setPath(m_ui->dbname->text());
+		url.setPath("/" + m_ui->dbname->text());
+	}
+
+	if(!url.isValid()) {
+		KMessageBox::detailedSorry(0, "Invalid URL!", url.errorString());
 	}
 
 	// Create the connection
-	m_connection = Connection::create(url);
+	m_connection = db::Connection::create(url);
 	Q_ASSERT(m_connection);
 
 	// Connect open/fail signals
@@ -185,8 +179,7 @@ void ConnectionDialog::openConnection()
 	connect(m_connection, SIGNAL(cannotOpen(QString)), this, SLOT(failed(QString)));
 
 	// Prepare for waiting for the connection to open
-	enableButtonOk(false);
-	enableButtonCancel(false);
+	m_ui->buttonBox->setEnabled(false);
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
 	// Go.

@@ -1,78 +1,36 @@
+cmake_minimum_required(VERSION 2.8.12)
+
 project (kquerybrowser)
-find_package(KDE4 REQUIRED)
-include (KDE4Defaults)
-include_directories(${KDE4_INCLUDES})
+find_package(ECM REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
 
-set(kquerybrowser_SRCS
-	src/db/connection.cpp
-	src/db/sqlite3connection.cpp
-	src/db/serverconnection.cpp
-	src/db/mysqlconnection.cpp
-	src/db/pgsqlconnection.cpp
-	src/db/dbctxmanager.cpp
-	src/db/dbcontext.cpp
-	src/db/queryresults.cpp
-	src/meta/database.cpp
-	src/meta/schema.cpp
-	src/meta/table.cpp
-	src/meta/column.cpp
-	src/export/exporter.cpp
-	src/export/htmlexporter.cpp
-	src/export/csvexporter.cpp
-	src/main.cpp
-	src/mainwindow.cpp
-	src/connectiondialog.cpp
-	src/queryview.cpp
-	src/valueview.cpp
-	src/querywidget.cpp
-	src/scriptwidget.cpp
-	src/tablelistwidget.cpp
-	src/databaselistwidget.cpp
-	src/sqllineedit.cpp
-	src/stringbuilder.cpp
-	src/bookmarks.cpp
-	src/bookmarkdialog.cpp
-	src/sqlcompletion.cpp
-)
+include(ECMInstallIcons)
+include(ECMAddAppIcon) 
 
-SET(kquerybrowser_RCCS
-	res/resources.qrc
-)
+include(KDEInstallDirs)
+include(KDECompilerSettings)
+include(KDECMakeSettings)
+include(FeatureSummary)
 
-kde4_add_ui_files(kquerybrowser_SRCS
-	ui/connectiondialog.ui
-	ui/valueviewwidget.ui
-	ui/findwidget.ui
-)
+add_subdirectory( src )
 
-qt4_add_resources(kquerybrowser_SRCS ${kquerybrowser_RCCS})
-
-kde4_add_executable(kquerybrowser ${kquerybrowser_SRCS})
-
-target_link_libraries(kquerybrowser
-	${KDE4_KDEUI_LIBS}
-	${KDE4_KIO_LIBS}
-	${KDE4_KTEXTEDITOR_LIBS}
-	${QT_QTSQL_LIBRARY}
-	${QT_QTWEBKIT_LIBRARY}
-)
-
-install(TARGETS kquerybrowser  ${INSTALL_TARGETS_DEFAULT_ARGS})
-install(FILES
-	data/kquerybrowserui.rc
-	data/queryscript.js
-	data/querystyle.css
-	data/export.html
-	data/sep0.png
-	data/sep1.png
-	data/ajax-loader.gif
-	DESTINATION  ${DATA_INSTALL_DIR}/kquerybrowser
-)
+# TODO use new desktop file naming scheme
 install(PROGRAMS
 	kquerybrowser.desktop
 	DESTINATION ${XDG_APPS_INSTALL_DIR}
 )
 
-kde4_install_icons(${ICON_INSTALL_DIR})
-kde4_update_iconcache()
+# TODO appdata
+#install(FILES
+	#${CMAKE_CURRENT_SOURCE_DIR}/data/kquerybrowser.appdata.xml
+	#DESTINATION ${CMAKE_INSTALL_METAINFODIR}
+#)
+
+ecm_install_icons(ICONS 
+	"hi128-app-kquerybrowser.png"
+	DESTINATION ${ICON_INSTALL_DIR}
+	THEME hicolor
+)
+
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

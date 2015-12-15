@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<!--CONTENT-TYPE-->
+<head><title>
+<!--TITLE-->
+- KQueryBrowser export</title>
+<style type="text/css">
+/* Common */
+html {
+	font-family: sans-serif;
+}
+
+/* The query div holds the results of a single query */
+div.query {
+	margin: 0.5em 1em 1em 0.5em;
+	padding-bottom: 0.5em;
+	border-bottom: 1px dotted #ccc;
+}
+
+/* The p query contains the query string */
+p.query {
+	font-family: monospace;
+	font-size: 1.5em;
+}
+
+/* A table contains query results */
+table {
+	border-collapse: collapse;
+}
+
+thead>tr { background: #4d4d4d; }
+
+th, td { padding: 0.4em 0.6em; }
+
+th {
+	font-weight: normal;
+	color: #eff0f1;
+	border: 1px solid #4d4d4d;
+}
+
+th.pk { font-weight: bold }
+th.fk { text-decoration: underline }
+
+tbody>tr { background: #fcfcfc }
+tbody>tr:nth-child(even) { background: #eff0f1; }
+
+td {
+	border-left: 1px solid #bdc3c7;
+	border-right: 1px solid #bdc3c7;
+	white-space: nowrap
+}
+
+tr:last-child>td {
+	border-bottom: 1px solid #bdc3c7;
+}
+
+/* Truncated cells with link to full content */
+td>a {
+	color: #000;
+}
+
+td>a:after { content: "..." }
+
+/* We use this to mark up NULLs */
+td>b {
+	background: #95a5a6;
+	padding: 0.2em;
+	font-size: 0.7em;
+	border: 1px solid #4d4d4d;
+	color: #4d4d4d;
+	cursor: default
+}
+</style>
+</head>
+<body>
+<!--MERGE-->
+</body>
+</html>
+

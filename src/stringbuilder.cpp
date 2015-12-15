@@ -25,7 +25,7 @@ QString StringBuilder::toString() const
 {
 	QString str;
 	str.reserve(m_len);
-	foreach(const QString& s, m_list) {
+	for(const QString &s : m_list) {
 		str.append(s);
 	}
 	return str;

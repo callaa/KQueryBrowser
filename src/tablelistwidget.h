@@ -20,7 +20,9 @@
 #include <QDockWidget>
 
 class QTreeWidget;
-class Database;
+namespace meta {
+	class Database;
+}
 
 class TableListWidget : public QDockWidget
 {
@@ -34,7 +36,7 @@ signals:
 	void refresh();
 
 public slots:
-	void refreshTree(const Database& db);
+	void refreshTree(const meta::Database& db);
 
 protected slots:
 	void customContextMenu(const QPoint& point);

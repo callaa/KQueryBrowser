@@ -5,6 +5,7 @@ BookmarkDialog::BookmarkDialog(KBookmarkManager *mgr, QWidget *parent)
 {
 }
 
+#if 0
 void BookmarkDialog::save(BookmarkDialogMode mode, const KBookmark &bm)
 {
 	Q_UNUSED(bm);
@@ -15,4 +16,4 @@ void BookmarkDialog::save(BookmarkDialogMode mode, const KBookmark &bm)
 		default: break;
 	}
 }
-
+#endif

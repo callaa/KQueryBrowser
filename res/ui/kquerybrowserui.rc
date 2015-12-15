@@ -31,12 +31,16 @@
 	</Menu>
 </MenuBar>
 
-<!--
-<ToolBar name="mainToolBar" >
+<ToolBar name="mainToolBar" noMerge="1">
 	<text>Main Toolbar</text>
-	<Action name="clear" />
+	<Action name="newquerytab" />
+	<Action name="newscripttab" />
+	<Separator />
+	<Action name="openscript" />
+	<Action name="savescript" />
+	<Separator />
+	<Action name="resultsclear" />
 </ToolBar>
--->
 
 <State name="tab-script">
 	<enable>

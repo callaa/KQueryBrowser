@@ -17,7 +17,9 @@
 #ifndef MYSQLCONNECTION_H
 #define MYSQLCONNECTION_H
 
-#include "serverconnection.h"
+#include "../serverconnection.h"
+
+namespace db {
 
 /**
  \brief Connection handler for MySQL
@@ -27,7 +29,7 @@ class MysqlConnection : public ServerConnection
 {
     Q_OBJECT
 public:
-    MysqlConnection(const KUrl& url, QObject *parent);
+    MysqlConnection(const QUrl& url, QObject *parent);
 
 	bool isCapable(Capability capability) const;
 
@@ -38,8 +40,11 @@ protected:
 	bool selectDatabase(const QString& database);
 	QString createScript(const QString& table);
 
-	QVector<Schema> schemas();
+	QVector<meta::Schema> schemas();
 	QStringList databases();
 };
 
+}
+
 #endif // MYSQLCONNECTION_H
+

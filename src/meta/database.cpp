@@ -16,6 +16,8 @@
 //
 #include "database.h"
 
+namespace meta {
+
 Database::Database()
 {
 }
@@ -28,5 +30,7 @@ Database::Database(const QVector<Schema> schemas)
 bool Database::noSchemas() const
 {
 	return m_schemas.count()==1 && m_schemas.at(0).name().isEmpty();
+}
+
 }
 

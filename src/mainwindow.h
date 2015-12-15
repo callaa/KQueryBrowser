@@ -20,8 +20,11 @@
 #include <KXmlGuiWindow>
 #include <KBookmarkOwner>
 
-class Connection;
-class KTabWidget;
+namespace db {
+	class Connection;
+}
+
+class QTabWidget;
 class KRecentFilesAction;
 class KBookmarkDialog;
 class KBookmarkManager;
@@ -30,7 +33,7 @@ class MainWindow : public KXmlGuiWindow, public KBookmarkOwner
 {
 	Q_OBJECT
 public:
-	MainWindow(Connection *connection, QWidget *parent=0);
+	MainWindow(db::Connection *connection, QWidget *parent=0);
 	~MainWindow();
 
 	void openBookmark(const KBookmark& bookmark, Qt::MouseButtons mb, Qt::KeyboardModifiers km);
@@ -39,7 +42,7 @@ public:
 	QString currentTitle() const;
 
 	//! Get the URL of the current connection
-	QString currentUrl() const;
+	QUrl currentUrl() const;
 
 	//! Get the bookmark editor dialog
 	KBookmarkDialog *bookmarkDialog(KBookmarkManager *mgr, QWidget *parent);
@@ -48,18 +51,19 @@ public slots:
 	//! Open a new query tab
 	void newQueryTab();
 
-	//! Open a new blank script tab
-	void newScriptTab(const QString& content=QString());
+	//! Open a new script tab
+	void newScriptTab(const QString& content);
+	void newBlankScriptTab();
 
 	//! Open a script file
-	void openScript();
+	void openScriptDialog();
 
 	/**
 	 * \brief Open the specified script
 	 * \param url script file URL
 	 * \return true on success
 	 */
-	bool openScript(const KUrl& url);
+	bool openScript(const QUrl& url);
 
 	//! Save the contents of the currently open script tab
 	void saveScript();
@@ -75,7 +79,7 @@ public slots:
 	void runQuery(const QString& query);
 
 	//! Show new connection dialog
-	void newConnection(const QUrl& url = QUrl());
+	void newConnection();
 
 	//! Search text in currently active tab
 	void search();
@@ -94,7 +98,7 @@ protected slots:
 	void nameChange(const QString& name);
 
 	//! Close a tab
-	void closeTab(QWidget *widget);
+	void closeTab(int index);
 
 	//! The "content modified" flag on a tab has changed
 	void tabNameChange(const QString& name);
@@ -110,7 +114,7 @@ protected slots:
 
 	void currentTabChanged(int index);
 
-	void tabContextMenu(QWidget *w, const QPoint& p);
+	void renameQueryTab(int index);
 
 	void exportResults(QAction *action);
 private:
@@ -119,8 +123,8 @@ private:
 	void writeSettings();
 	void newTab(QWidget *widget, const QString& title);
 
-	KTabWidget *m_tabs;
-	Connection *m_connection;
+	QTabWidget *m_tabs;
+	db::Connection *m_connection;
 	int m_querytabs;
 
 	KRecentFilesAction *m_recent;

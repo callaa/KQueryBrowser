@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+#include "scriptwidget.h"
+#include "queryview.h"
+
 #include <QDebug>
 
 #include <QAction>
@@ -22,21 +26,17 @@
 #include <QVBoxLayout>
 #include <QRegExp>
 
-#include <KTextEditor/EditorChooser>
+#include <KMessageBox>
+#include <KTextEditor/Editor>
 #include <KTextEditor/View>
 #include <KTextEditor/Document>
 #include <KTextEditor/ConfigInterface>
 
-#include <KMessageBox>
-
-#include "scriptwidget.h"
-#include "queryview.h"
-
-ScriptWidget::ScriptWidget(const KUrl& url, QWidget *parent) :
+ScriptWidget::ScriptWidget(const QUrl& url, QWidget *parent) :
 	QWidget(parent), m_documenturl(url), m_document(0)
 {
 	// Load document
-	KTextEditor::Editor *editor = KTextEditor::EditorChooser::editor();
+	KTextEditor::Editor *editor = KTextEditor::Editor::instance();
 	if (!editor) {
 		KMessageBox::error(0, tr("A KDE text-editor component could not be found;\n" "please check your KDE installation."));
 		return;
@@ -79,22 +79,22 @@ ScriptWidget::ScriptWidget(const KUrl& url, QWidget *parent) :
 	toolbar->setIconSize(QSize(16,16));
 
 	// Actions
-	QAction *actExec = new QAction(KIcon("quickopen"), tr("Run"), this);
+	QAction *actExec = new QAction(QIcon::fromTheme("debug-run"), tr("Run"), this);
 	actExec->setToolTip(tr("Run the whole script"));
 	connect(actExec, SIGNAL(triggered()), this, SLOT(executeQuery()));
 	toolbar->addAction(actExec);
 
-	m_actrunsel = new QAction(KIcon("quickopen"), tr("Run selection"), this);
+	m_actrunsel = new QAction(QIcon::fromTheme("debug-run-cursor"), tr("Run selection"), this);
 	m_actrunsel->setToolTip(tr("Run just the selected part of the script"));
 	connect(m_actrunsel, SIGNAL(triggered()), this, SLOT(executeSelection()));
 	m_actrunsel->setEnabled(false);
 	toolbar->addAction(m_actrunsel);
 
 #if 0 // todo
-	QAction *actStep = new QAction(KIcon("debug-step-over"), tr("Step"), this);
+	QAction *actStep = new QAction(QIcon::fromTheme("debug-step-over"), tr("Step"), this);
 	toolbar->addAction(actStep);
 
-	QAction *actStop = new QAction(KIcon("process-stop"), tr("Stop"), this);
+	QAction *actStop = new QAction(QIcon::fromTheme("process-stop"), tr("Stop"), this);
 	actStop->setEnabled(false);
 	toolbar->addAction(actStop);
 #endif
@@ -142,7 +142,7 @@ void ScriptWidget::executeSelection()
 	emit doQuery(m_view->selectionText(), 0);
 }
 
-void ScriptWidget::queryResults(const QueryResults& results)
+void ScriptWidget::queryResults(const db::QueryResults& results)
 {
 	m_resultview->showResults(results);
 }
@@ -162,7 +162,7 @@ bool ScriptWidget::save()
 	return m_document->save();
 }
 
-bool ScriptWidget::saveAs(const KUrl& url)
+bool ScriptWidget::saveAs(const QUrl& url)
 {
 	if(m_document->saveAs(url)) {
 		m_documenturl = url;

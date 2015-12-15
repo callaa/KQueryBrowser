@@ -110,7 +110,7 @@ function addExporters(parentEl) {
 	var ediv = document.createElement("div");
 	ediv.className="export";
 	var espan = document.createElement("span");
-	espan.textContent="Export";
+	espan.textContent="Export:";
 	ediv.appendChild(espan);
 
 	for(var i=0;i<EXPORTERS.length;++i) {
@@ -124,14 +124,7 @@ function addExporters(parentEl) {
 			};
 		})(e.format);
 
-		if(e.icon!=null) {
-			var img = document.createElement("img");
-			img.src = e.icon;
-			img.title = e.format;
-			ee.appendChild(img);
-		} else {
-			ee.textContent = e.format;
-		}
+		ee.textContent = e.format;
 		ediv.appendChild(ee);
 	}
 	parentEl.appendChild(ediv);

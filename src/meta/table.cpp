@@ -16,6 +16,7 @@
 //
 #include "table.h"
 
+namespace meta {
 
 Table::Table()
 {
@@ -35,3 +36,6 @@ Column *Table::column(const QString &name)
 			return &m_columns[i];
 	return 0;
 }
+
+}
+

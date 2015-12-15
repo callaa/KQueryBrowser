@@ -1,7 +1,7 @@
 #ifndef VALUEVIEW_H
 #define VALUEVIEW_H
 
-#include <KDialog>
+#include <QDialog>
 #include <QVariant>
 
 class QPlainTextEdit;
@@ -10,10 +10,14 @@ namespace Ui {
 	class ValueViewWidget;
 }
 
+namespace Okteta {
+	class AbstractByteArrayView;
+}
+
 /**
   \brief A dialog for viewing result values that were too large to show in the table.
   */
-class ValueView : public KDialog
+class ValueView : public QDialog
 {
     Q_OBJECT
 public:
@@ -35,7 +39,7 @@ private:
 	Ui::ValueViewWidget *m_ui;
 
 	QPlainTextEdit *m_textview;
-	QWidget *m_hexview;
+	Okteta::AbstractByteArrayView *m_hexview;
 	bool m_dirtytext, m_dirtyhex;
 };
 

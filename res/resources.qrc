@@ -1,13 +1,16 @@
 <RCC>
-    <qresource prefix="/icons">
-        <file>systable.png</file>
-        <file>table.png</file>
-        <file>view.png</file>
-        <file>key.png</file>
-        <file>unique.png</file>
+	<qresource>
+		<file>icons/systable.png</file>
+		<file>icons/table.png</file>
+		<file>icons/view.png</file>
+		<file>icons/key.png</file>
+		<file>icons/unique.png</file>
 
-        <file>mysql.png</file>
-        <file>pgsql.png</file>
-        <file>sqlite3.png</file>
-    </qresource>
+		<file>ui/kquerybrowserui.rc</file>
+		<file>ui/ajax-loader.gif</file>
+		<file>ui/export.html</file>
+		<file>ui/queryscript.js</file>
+		<file>ui/querystyle.css</file>
+	</qresource>
 </RCC>
+

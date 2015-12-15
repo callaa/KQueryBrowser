@@ -14,69 +14,79 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QUrl>
-
-#include <KApplication>
-#include <KAboutData>
-#include <KCmdLineArgs>
-#include <KCmdLineOptions>
-#include <KMessageBox>
-#include <KLocale>
-
 #include "connectiondialog.h"
 #include "db/queryresults.h"
 #include "meta/database.h"
 #include "bookmarks.h"
 
-int main (int argc, char *argv[])
+#include <QApplication>
+#include <QUrl>
+#include <QCommandLineParser>
+#include <QDebug>
+
+#include <KAboutData>
+#include <KLocalizedString>
+
+void initApp(QApplication &app)
 {
-	qRegisterMetaType<QueryResults>();
-	qRegisterMetaType<Database>();
+	qRegisterMetaType<db::QueryResults>();
+	qRegisterMetaType<meta::Database>();
 
 	KAboutData aboutData(
-				// The program name used internally.
-				"kquerybrowser",
-				// The message catalog name
-				0,
-				// A displayable program name string.
-				ki18n("KQueryBrowser"),
-				// The program version string.
-				"0.1.0",
-				// Short description of what the app does.
-				ki18n("A database query tool for KDE"),
-				// The license this code is released under
-				KAboutData::License_GPL_V3,
-				// Copyright Statement
-				ki18n("(c) 2011, Calle Laakkonen"),
-				// Optional text shown in the About box.
-				// Can contain any information desired.
-				ki18n(""),
-				// The program homepage string.
-				"http://luolamies.org/software/kquerybrowser",
-				// The bug report email address
-				"calle@luolamies.org");
+		// The program name used internally.
+		QStringLiteral("kquerybrowser"),
+		// A displayable program name string.
+		i18n("KQueryBrowser"),
+		// The program version string.
+		QStringLiteral("0.2.0"),
+		// Short description of what the app does.
+		i18n("A database query tool for KDE"),
+		// The license this code is released under
+		KAboutLicense::GPL_V3,
+		// Copyright Statement
+		QStringLiteral("(c) 2011-2015, Calle Laakkonen"),
+		// Optional text shown in the About box.
+		// Can contain any information desired.
+		QString(),
+		// The program homepage string.
+		QStringLiteral("https://github.com/callaa/kquerybrowser/"),
+		// The bug report email address
+		QStringLiteral("laakkonenc@gmail.com")
+	);
 
-	KCmdLineArgs::init( argc, argv, &aboutData );
-	KCmdLineOptions opts;
-	opts.add("+[url]", ki18n("Database URL"));
-
-	KCmdLineArgs::addCmdLineOptions(opts);
-
-	KApplication app;
+    KAboutData::setApplicationData(aboutData);
 
 	Bookmarks::init();
 
-	KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
-	if(args->count()==0) {
+	QCommandLineParser parser;
+	parser.setApplicationDescription("A SQL query browser for KDE");
+	parser.addHelpOption();
+	parser.addPositionalArgument("URL", "Database URL");
+
+	parser.process(app);
+
+	QStringList args = parser.positionalArguments();
+	if(args.isEmpty()) {
 		(new ConnectionDialog())->show();
+
 	} else {
-		for(int i=0;i<args->count();++i) {
-			QUrl url(args->arg(i));
+		for(const QString &arg : args) {
+			QUrl url(arg);
 			if(url.isValid()) {
-				ConnectionDialog::open(url);
+				ConnectionDialog::openDialog(url);
+			} else {
+				qWarning() << "Invalid URL:" << arg;
 			}
 		}
 	}
+
+}
+
+int main (int argc, char *argv[])
+{
+	QApplication app(argc, argv);
+
+	initApp(app);
 
 	return app.exec();
 }

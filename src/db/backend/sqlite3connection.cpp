@@ -19,11 +19,14 @@
 #include <QSqlError>
 #include <QVariant>
 #include <QStringList>
+#include <QDebug>
 
 #include "sqlite3connection.h"
-#include "../meta/table.h"
+#include "../../meta/table.h"
 
-Sqlite3Connection::Sqlite3Connection(const KUrl& url, QObject *parent) :
+namespace db {
+
+Sqlite3Connection::Sqlite3Connection(const QUrl& url, QObject *parent) :
 	Connection(url, parent)
 {
 }
@@ -46,26 +49,26 @@ QString Sqlite3Connection::name() const
 	return url().fileName();
 }
 
-QVector<Schema> Sqlite3Connection::schemas()
+QVector<meta::Schema> Sqlite3Connection::schemas()
 {
-	QVector<Table> tables;
+	QVector<meta::Table> tables;
 
 	QSqlQuery q("SELECT type, name FROM sqlite_master WHERE type IN ('table', 'view') ORDER BY type, name ASC", m_db);
 	while(q.next()) {
-		tables.append(Table(q.value(1).toString(), QVector<Column>(), q.value(0).toString() == "table" ? Table::TABLE : Table::VIEW));
+		tables.append(meta::Table(q.value(1).toString(), QVector<meta::Column>(), q.value(0).toString() == "table" ? meta::Table::TABLE : meta::Table::VIEW));
 	}
 	// Add master table to the list too
-	tables.append(Table("sqlite_master", QVector<Column>(), Table::SYSTEMTABLE));
+	tables.append(meta::Table("sqlite_master", QVector<meta::Column>(), meta::Table::SYSTEMTABLE));
 
 	// Get column definitions
 	for(int i=0;i<tables.count();++i) {
-		Table &t = tables[i];
+		meta::Table &t = tables[i];
 
 		q.exec("pragma table_info(" + t.name() + ")");
 
 		// Pragma columns are: column id (zero based), column name, column type, not-null, default value, primary key
 		while(q.next()) {
-			Column c = Column(q.value(1).toString());
+			meta::Column c = meta::Column(q.value(1).toString());
 			c.setType(q.value(2).toString());
 			c.setPk(q.value(5).toBool());
 			t.columns().append(c);
@@ -88,19 +91,19 @@ QVector<Schema> Sqlite3Connection::schemas()
 		// Result returns eight columns: id, seq, table, from, to, on_update, on_delete, match
 		q.exec("pragma foreign_key_list(" + t.name() + ")");
 		while(q.next()) {
-			t.column(q.value(3).toString())->setFk(ForeignKey(
+			t.column(q.value(3).toString())->setFk(meta::ForeignKey(
 						name(),
 						QString(),
 						q.value(2).toString(),
 						(q.value(4).isNull() ? q.value(3) : q.value(4)).toString(),
-						ForeignKey::rulestring(q.value(5).toString()),
-						ForeignKey::rulestring(q.value(6).toString())
+						meta::ForeignKey::rulestring(q.value(5).toString()),
+						meta::ForeignKey::rulestring(q.value(6).toString())
 						));
 		}
 	}
 
-	QVector<Schema> schemas(1);
-	schemas[0] = Schema(QString(), tables);
+	QVector<meta::Schema> schemas(1);
+	schemas[0] = meta::Schema(QString(), tables);
 	return schemas;
 }
 
@@ -119,11 +122,11 @@ QString Sqlite3Connection::createScript(const QString& table)
 	q.bindValue(0, table);
 	q.exec();
 	if(q.next()==false) {
-		qWarning("Couldn't show table (%s) creation script: %s",
-				table.toAscii().constData(),
-				q.lastError().text().toAscii().constData());
+		qWarning() << "Couldn't show table (" << table << ") creation script: " << q.lastError().text();
 		return QString();
 	}
 	return q.value(0).toString();
+}
+
 }
 

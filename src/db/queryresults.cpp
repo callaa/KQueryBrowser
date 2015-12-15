@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
+//
 #include "queryresults.h"
+
+namespace db {
 
 QueryResultsData::QueryResultsData()
 	: select(false), success(false), more(false), continuation(false),
@@ -30,5 +33,7 @@ QueryResults::QueryResults()
 QueryResults::QueryResults(QueryResultsData *data)
 	: m_d(data)
 {
+}
+
 }
 

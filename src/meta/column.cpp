@@ -17,6 +17,8 @@
 #include "column.h"
 #include "../stringbuilder.h"
 
+namespace meta {
+
 ForeignKey::Rule ForeignKey::rulestring(const QString& rule)
 {
 	if(rule == "CASCADE")
@@ -68,5 +70,7 @@ QString ForeignKey::toString() const
 	fk << " ON UPDATE " << FK_RULES[m_onupdate];
 	fk << " ON DELETE " << FK_RULES[m_ondelete];
 	return fk.toString();
+}
+
 }
 

@@ -21,15 +21,20 @@
 #include <QSqlDatabase>
 #include <QMutex>
 
-#include <KUrl>
+#include <QUrl>
 
 #include "../meta/schema.h"
 
 class QSqlError;
 class QStringList;
 
+namespace meta {
+	class Database;
+}
+
+namespace db {
+
 class DbCtxManager;
-class Database;
 
 /**
   \brief A database connection thread.
@@ -39,7 +44,7 @@ class Connection : public QThread
 	friend class DbCtxManager;
     Q_OBJECT
 public:
-    explicit Connection(const KUrl &url, QObject *parent = 0);
+    explicit Connection(const QUrl &url, QObject *parent = 0);
 	~Connection();
 
 	/**
@@ -66,7 +71,7 @@ public:
 	 \param parent the parent object for the connection
 	 \return new connection or 0 if type is unrecognized
 	 */
-	static Connection *create(const KUrl& url, QObject *parent = 0);
+	static Connection *create(const QUrl& url, QObject *parent = 0);
 
 	/**
 	  \brief Connect the signals and slots for a query browser window
@@ -104,7 +109,7 @@ public:
 	/**
 	 \brief Get the URL that was used to open this connection
 	 */
-	KUrl url() const;
+	QUrl url() const;
 
 	/**
 	 * \brief Check if this connection handler has the given feature
@@ -154,7 +159,7 @@ signals:
 	void switchDatabase(const QString& database);
 
 	//! Updated database structure info
-	void dbStructure(const Database& tables);
+	void dbStructure(const meta::Database& tables);
 
 	/**
 	 * \brief Updated database list
@@ -180,7 +185,7 @@ protected:
 	 * The signal namedChanged(QString) is emitted automatically.
 	 * \param newurl the new URL
 	 */
-	void changeUrl(const KUrl &newurl);
+	void changeUrl(const QUrl &newurl);
 
 	/**
 	  \brief Set connection properties
@@ -200,7 +205,7 @@ protected:
 
 	  This should be called only from this thread.
 	  */
-	virtual QVector<Schema> schemas() = 0;
+	virtual QVector<meta::Schema> schemas() = 0;
 
 	/**
 	  \brief Get a list of databases the user can access
@@ -245,8 +250,10 @@ private:
 	//! Number of connections opened (this is used to make unique connection names)
 	static int m_count;
 
-	KUrl m_url;
+	QUrl m_url;
 	QMutex m_urlmutex;
 };
+
+}
 
 #endif // CONNECTION_H

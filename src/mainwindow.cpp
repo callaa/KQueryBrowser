@@ -14,20 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QDebug>
-#include <QInputDialog>
-#include <KApplication>
-#include <KActionCollection>
-#include <KRecentFilesAction>
-#include <KStandardAction>
-#include <KEncodingFileDialog>
-#include <KMessageBox>
-#include <KSaveFile>
-#include <KStandardGuiItem>
-#include <KBookmarkMenu>
-#include <KMenu>
-#include <KTabWidget>
-
 #include "mainwindow.h"
 #include "connectiondialog.h"
 #include "db/connection.h"
@@ -40,46 +26,55 @@
 #include "bookmarkdialog.h"
 #include "export/exporter.h"
 
-MainWindow::MainWindow(Connection *connection, QWidget *parent)
+#include <QDebug>
+#include <QInputDialog>
+#include <QSaveFile>
+#include <QMenu>
+#include <QTabWidget>
+#include <QApplication>
+#include <QFileDialog>
+#include <QScopedPointer>
+
+#include <KSharedConfig>
+#include <KRecentFilesAction>
+#include <KStandardAction>
+#include <KActionCollection>
+#include <KActionMenu>
+#include <KEncodingFileDialog>
+#include <KMessageBox>
+#include <KStandardGuiItem>
+#include <KBookmarkMenu>
+#include <KConfigGroup>
+
+MainWindow::MainWindow(db::Connection *connection, QWidget *parent)
 	: KXmlGuiWindow(parent), m_connection(connection), m_querytabs(0)
 {
 	setAttribute(Qt::WA_DeleteOnClose, true);
-	setWindowIcon(KIcon("kquerybrowser"));
+	setWindowIcon(QIcon::fromTheme("kquerybrowser"));
 	nameChange(connection->name());
 	setupActions();
 
-	connect(connection, SIGNAL(nameChanged(QString)),
-			this, SLOT(nameChange(QString)));
-
-	connect(connection, SIGNAL(newScript(QString)),
-			this, SLOT(newScriptTab(QString)));
+	connect(connection, &db::Connection::nameChanged, this, &MainWindow::nameChange);
+	connect(connection, &db::Connection::newScript, this, &MainWindow::newScriptTab);
 
 	// Create tabs for query and script widgets. This is the central widget
-	m_tabs = new KTabWidget();
+	m_tabs = new QTabWidget();
 	setCentralWidget(m_tabs);
 	m_tabs->setMovable(true);
-	connect(m_tabs, SIGNAL(closeRequest(QWidget*)),
-			this, SLOT(closeTab(QWidget*)));
-	connect(m_tabs, SIGNAL(mouseDoubleClick()),
-			this, SLOT(newQueryTab()));
-	connect(m_tabs, SIGNAL(currentChanged(int)),
-			this, SLOT(currentTabChanged(int)));
-	connect(m_tabs, SIGNAL(contextMenu(QWidget*, const QPoint&)),
-			this, SLOT(tabContextMenu(QWidget*, const QPoint&)));
+	connect(m_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTab);
+	connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::currentTabChanged);
+	connect(m_tabs, &QTabWidget::tabBarDoubleClicked, this, &MainWindow::renameQueryTab);
 
 	newQueryTab();
 
 	// Create the table list dock widget
-	TableListWidget *tablelist = new TableListWidget(m_connection->isCapable(Connection::SHOW_CREATE), this);
+	TableListWidget *tablelist = new TableListWidget(m_connection->isCapable(db::Connection::SHOW_CREATE), this);
 	tablelist->setObjectName("tablelist");
 	tablelist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, tablelist);
-	connect(m_connection, SIGNAL(dbStructure(Database)),
-			tablelist, SLOT(refreshTree(Database)));
-	connect(tablelist, SIGNAL(runQuery(QString)),
-			this, SLOT(runQuery(QString)));
-	connect(tablelist, SIGNAL(showCreate(QString)),
-			m_connection, SIGNAL(needCreateTable(QString)));
+	connect(m_connection, &db::Connection::dbStructure, tablelist, &TableListWidget::refreshTree);
+	connect(tablelist, &TableListWidget::runQuery, this, &MainWindow::runQuery);
+	connect(tablelist, &TableListWidget::showCreate, m_connection, &db::Connection::needCreateTable);
 	m_connection->getDbStructure();
 
 	QAction *showtables = actionCollection()->action("showtables");
@@ -88,12 +83,11 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	connect(tablelist, SIGNAL(refresh()), m_connection, SIGNAL(needDbStructure()));
 
 	// Create the database list dock widget
-	DatabaseListWidget *dblist = new DatabaseListWidget(m_connection->isCapable(Connection::SWITCH_DB), this);
+	DatabaseListWidget *dblist = new DatabaseListWidget(m_connection->isCapable(db::Connection::SWITCH_DB), this);
 	dblist->setObjectName("databaselist");
 	dblist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, dblist);
-	connect(m_connection, SIGNAL(dbList(QStringList, QString)),
-			dblist, SLOT(refreshList(QStringList, QString)));
+	connect(m_connection, &db::Connection::dbList, dblist, &DatabaseListWidget::refreshList);
 	m_connection->getDbList();
 
 	QAction *showdbs = actionCollection()->action("showdatabases");
@@ -111,18 +105,22 @@ MainWindow::MainWindow(Connection *connection, QWidget *parent)
 	readSettings();
 
 	// Set up XML GUI
-	setupGUI(Default, "kquerybrowserui.rc");
+	setupGUI(Default, ":ui/kquerybrowserui.rc");
 
-	KMenu *bmmenu = findChild<KMenu*>("bookmarks");
-	KBookmarkMenu *bmm = new KBookmarkMenu(
-			Bookmarks::manager(),
-			this,
-			bmmenu,
-			actionCollection());
-	// Note. bookmark menu parent is not set automatically.
-	// (This weird behavior can't be fixed without breaking konqueror
-	// and possibly some other apps. It will probably be fixed in KDE5)
-	bmm->setParent(bmmenu);
+	QMenu *bmmenu = findChild<QMenu*>("bookmarks");
+	if(!bmmenu) {
+		qWarning("Bookmark menu not present!");
+	} else {
+		KBookmarkMenu *bmm = new KBookmarkMenu(
+				Bookmarks::manager(),
+				this,
+				bmmenu,
+				actionCollection());
+		// Note. bookmark menu parent is not set automatically.
+		// (This weird behavior can't be fixed without breaking konqueror
+		// and possibly some other apps. It will probably be fixed in KDE5)
+		bmm->setParent(bmmenu);
+	}
 }
 
 MainWindow::~MainWindow()
@@ -139,37 +137,37 @@ void MainWindow::nameChange(const QString& name)
 void MainWindow::setupActions()
 {
 	// File menu actions
-	KStandardAction::quit(kapp, SLOT(quit()), actionCollection());
-	m_recent = KStandardAction::openRecent(this, SLOT(openScript(KUrl)), 0);
+	KStandardAction::quit(qApp, SLOT(quit()), actionCollection());
+	m_recent = KStandardAction::openRecent(this, SLOT(openScript(QUrl)), 0);
 	actionCollection()->addAction("openrecentscript", m_recent);
 
-	KAction *newQueryTab= new KAction(KIcon("tab-new"), tr("New Query"), this);
+	QAction *newQueryTab= new QAction(QIcon::fromTheme("tab-new"), tr("New Query"), this);
 	actionCollection()->addAction("newquerytab", newQueryTab);
-	connect(newQueryTab, SIGNAL(triggered()), this, SLOT(newQueryTab()));
+	connect(newQueryTab, &QAction::triggered, this, &MainWindow::newQueryTab);
 
-	KAction *newScriptTab = new KAction(KIcon("document-new"), tr("New Script"), this);
+	QAction *newScriptTab = new QAction(QIcon::fromTheme("document-new"), tr("New Script"), this);
 	actionCollection()->addAction("newscripttab", newScriptTab);
-	connect(newScriptTab, SIGNAL(triggered()), this, SLOT(newScriptTab()));
+	connect(newScriptTab, &QAction::triggered, this, &MainWindow::newBlankScriptTab);
 
-	KAction *openScript = new KAction(KIcon("document-open"), tr("Open Script..."), this);
+	QAction *openScript = new QAction(QIcon::fromTheme("document-open"), tr("Open Script..."), this);
 	actionCollection()->addAction("openscript", openScript);
-	connect(openScript, SIGNAL(triggered()), this, SLOT(openScript()));
+	connect(openScript, &QAction::triggered, this, &MainWindow::openScriptDialog);
 
-	KAction *saveScript = new KAction(KIcon("document-save"), tr("Save Script"), this);
+	QAction *saveScript = new QAction(QIcon::fromTheme("document-save"), tr("Save Script"), this);
 	actionCollection()->addAction("savescript", saveScript);
-	connect(saveScript, SIGNAL(triggered()), this, SLOT(saveScript()));
+	connect(saveScript, &QAction::triggered, this, &MainWindow::saveScript);
 	saveScript->setEnabled(false);
 
-	KAction *saveScriptAs = new KAction(KIcon("document-save-as"), tr("Save Script As..."), this);
+	QAction *saveScriptAs = new QAction(QIcon::fromTheme("document-save-as"), tr("Save Script As..."), this);
 	actionCollection()->addAction("savescriptas", saveScriptAs);
-	connect(saveScriptAs, SIGNAL(triggered()), this, SLOT(saveScriptAs()));
+	connect(saveScriptAs, &QAction::triggered, this, &MainWindow::saveScriptAs);
 	saveScriptAs->setEnabled(false);
 
 	// Export submenu
-	KActionMenu *exportmenu = new KActionMenu(KIcon("document-export-table"), tr("Export results"), this);
+	KActionMenu *exportmenu = new KActionMenu(QIcon::fromTheme("document-export-table"), tr("Export results"), this);
 	actionCollection()->addAction("resultexportmenu", exportmenu);
 	QActionGroup *exportgroup = Exporters::instance().multiTableActions(this);
-	foreach(QAction *a, exportgroup->actions())
+	for(QAction *a : exportgroup->actions())
 		exportmenu->addAction(a);
 	connect(exportgroup, SIGNAL(triggered(QAction*)),
 			this, SLOT(exportResults(QAction*)));
@@ -180,46 +178,47 @@ void MainWindow::setupActions()
 	KStandardAction::findNext(this, SLOT(findNext()), actionCollection());
 	KStandardAction::findPrev(this, SLOT(findPrev()), actionCollection());
 
-	KAction *clearResultView = new KAction(tr("Clear results"), this);
+	QAction *clearResultView = new QAction(tr("Clear results"), this);
 	actionCollection()->addAction("resultsclear", clearResultView);
-	connect(clearResultView, SIGNAL(triggered()), this, SLOT(clearResults()));
+	connect(clearResultView, &QAction::triggered, this, &MainWindow::clearResults);
 
 	// Settings menu actions
-	KAction *showTableDock = new KAction(tr("Show Tables"), this);
+	QAction *showTableDock = new QAction(tr("Show Tables"), this);
 	showTableDock->setCheckable(true);
 	actionCollection()->addAction("showtables", showTableDock);
 
-	KAction *showDatabaseDock = new KAction(tr("Show Databases"), this);
+	QAction *showDatabaseDock = new QAction(tr("Show Databases"), this);
 	showDatabaseDock->setCheckable(true);
 	actionCollection()->addAction("showdatabases", showDatabaseDock);
 
 	// Other actions
-	KAction *newConnection = new KAction(tr("New Connection"), this);
+	QAction *newConnection = new QAction(tr("New Connection"), this);
 	actionCollection()->addAction("newconnection", newConnection);
-	connect(newConnection, SIGNAL(triggered()), this, SLOT(newConnection()));
+	connect(newConnection, &QAction::triggered, this, &MainWindow::newConnection);
 }
 
 void MainWindow::readSettings()
 {
-	m_recent->loadEntries(KGlobal::config()->group("Recent Files"));
+	m_recent->loadEntries(KSharedConfig::openConfig()->group("Recent Files"));
 }
 
 void MainWindow::writeSettings()
 {
-	m_recent->saveEntries(KGlobal::config()->group("Recent Files"));
-	KGlobal::config()->sync();
+	KSharedConfigPtr cfg = KSharedConfig::openConfig();
+	m_recent->saveEntries(cfg->group("Recent Files"));
+	cfg->sync();
 }
 
-void MainWindow::newConnection(const QUrl& url)
+void MainWindow::newConnection()
 {
-	ConnectionDialog::open(url);
+	ConnectionDialog::openDialog(QUrl());
 }
 
 void MainWindow::newDbConnection(const QString &database)
 {
-	KUrl url = m_connection->url();
+	QUrl url = m_connection->url();
 	url.setPath("/" + database);
-	ConnectionDialog::open(url);
+	ConnectionDialog::openDialog(url);
 }
 
 QString MainWindow::currentTitle() const
@@ -227,10 +226,10 @@ QString MainWindow::currentTitle() const
 	return m_connection->name();
 }
 
-QString MainWindow::currentUrl() const
+QUrl MainWindow::currentUrl() const
 {
 	// TODO use prettyUrl() and store password in KWallet
-	return m_connection->url().url();
+	return m_connection->url();
 }
 
 KBookmarkDialog *MainWindow::bookmarkDialog(KBookmarkManager *mgr, QWidget *parent)
@@ -242,35 +241,29 @@ void MainWindow::openBookmark(const KBookmark& bookmark, Qt::MouseButtons mb, Qt
 {
 	Q_UNUSED(mb);
 	Q_UNUSED(km);
-	newConnection(bookmark.url());
+	ConnectionDialog::openDialog(bookmark.url());
 }
 
 void MainWindow::currentTabChanged(int index)
 {
-	ScriptWidget *sw = qobject_cast<ScriptWidget*>(m_tabs->widget(index));
-
-	if(sw==0)
-		stateChanged("tab-query");
-	else
+	if(qobject_cast<ScriptWidget*>(m_tabs->widget(index)))
 		stateChanged("tab-script");
+	else
+		stateChanged("tab-query");
 }
 
-void MainWindow::tabContextMenu(QWidget *w, const QPoint &p)
+void MainWindow::renameQueryTab(int index)
 {
-	if(qobject_cast<QueryWidget*>(w)) {
-		QMenu menu;
-		menu.addAction(tr("Rename tab"));
-		if(menu.exec(p)) {
-			int index = m_tabs->indexOf(w);
-			QString name = QInputDialog::getText(this,
-					tr("Rename tab"),
-					tr("New name"),
-					QLineEdit::Normal,
-					m_tabs->tabText(index)
-					);
-			if(!name.isEmpty()) {
-				m_tabs->setTabText(index, name);
-			}
+	QWidget *widget = m_tabs->widget(index);
+	if(qobject_cast<QueryWidget*>(widget)) {
+		QString name = QInputDialog::getText(this,
+				tr("Rename tab"),
+				tr("New name"),
+				QLineEdit::Normal,
+				m_tabs->tabText(index)
+				);
+		if(!name.isEmpty()) {
+			m_tabs->setTabText(index, name);
 		}
 	}
 }
@@ -291,14 +284,13 @@ void MainWindow::newTab(QWidget *widget, const QString& title)
 void MainWindow::newQueryTab()
 {
 	QueryWidget *qw = new QueryWidget(this);
-	connect(m_connection, SIGNAL(dbStructure(const Database&)),
-			qw, SIGNAL(dbStructure(const Database&)));
+	connect(m_connection, &db::Connection::dbStructure, qw, &QueryWidget::dbStructure);
 	newTab(qw, tr("Query %1").arg(++m_querytabs));
 }
 
 void MainWindow::newScriptTab(const QString& content)
 {
-	ScriptWidget *sw = new ScriptWidget(KUrl(), this);
+	ScriptWidget *sw = new ScriptWidget(QUrl(), this);
 	if(sw->isValid()) {
 		if(!content.isEmpty())
 			sw->setContent(content);
@@ -307,16 +299,21 @@ void MainWindow::newScriptTab(const QString& content)
 		delete sw;
 }
 
-void MainWindow::openScript()
+void MainWindow::newBlankScriptTab()
 {
-	KUrl url = KFileDialog::getOpenUrl(KUrl(), "*.sql|SQL scripts\n*.txt|Text files\n*|All files", this);
+	newScriptTab(QString());
+}
+
+void MainWindow::openScriptDialog()
+{
+	QUrl url = QFileDialog::getOpenFileUrl(this, QString(), QUrl(), "*.sql|SQL scripts\n*.txt|Text files\n*|All files");
 
 	if(!url.isEmpty())
 		if(openScript(url))
 			m_recent->addUrl(url);
 }
 
-bool MainWindow::openScript(const KUrl& url)
+bool MainWindow::openScript(const QUrl& url)
 {
 	ScriptWidget *sw = new ScriptWidget(url, this);
 	if(sw->isValid()) {
@@ -327,10 +324,11 @@ bool MainWindow::openScript(const KUrl& url)
 	return false;
 }
 
-void MainWindow::closeTab(QWidget *widget)
+void MainWindow::closeTab(int index)
 {
+	QWidget *widget = m_tabs->widget(index);
 	ScriptWidget *sw = qobject_cast<ScriptWidget*>(widget);
-	if(sw!=0 && sw->isUnsaved()) {
+	if(sw && sw->isUnsaved()) {
 		int act = KMessageBox::warningYesNoCancel(
 					this,
 					tr("The script \"%1\" has been modified.\nDo you want to save your changes or discard them?").arg(sw->documentName()),
@@ -340,7 +338,7 @@ void MainWindow::closeTab(QWidget *widget)
 					);
 		if(act==KStandardGuiItem::Yes) {
 			if(sw->documentUrl().isEmpty()) {
-				KUrl url = KFileDialog::getSaveUrl(sw->documentUrl(), "*.sql|SQL scripts\n*.txt|Text files\n*|All files", this);
+				QUrl url = QFileDialog::getSaveFileUrl(this, QString(), sw->documentUrl(), "*.sql|SQL scripts\n*.txt|Text files\n*|All files");
 				if(!url.isEmpty())
 					sw->saveAs(url);
 				else
@@ -359,22 +357,22 @@ void MainWindow::closeTab(QWidget *widget)
 
 void MainWindow::clearResults()
 {
-	QMetaObject::invokeMethod(m_tabs->currentWidget(), "clearResults", Qt::DirectConnection);
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "clearResults", Qt::AutoConnection);
 }
 
 void MainWindow::search()
 {
-	QMetaObject::invokeMethod(m_tabs->currentWidget(), "showSearch", Qt::DirectConnection);
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "showSearch", Qt::AutoConnection);
 }
 
 void MainWindow::findNext()
 {
-	QMetaObject::invokeMethod(m_tabs->currentWidget(), "findNext", Qt::DirectConnection);
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "findNext", Qt::AutoConnection);
 }
 
 void MainWindow::findPrev()
 {
-	QMetaObject::invokeMethod(m_tabs->currentWidget(), "findPrev", Qt::DirectConnection);
+	QMetaObject::invokeMethod(m_tabs->currentWidget(), "findPrev", Qt::AutoConnection);
 }
 
 
@@ -393,7 +391,7 @@ void MainWindow::saveScriptAs()
 {
 	ScriptWidget *sw = qobject_cast<ScriptWidget*>(m_tabs->currentWidget());
 	if(sw!=0) {
-		KUrl url = KFileDialog::getSaveUrl(sw->documentUrl(), "*.sql|SQL scripts\n*.txt|Text files\n*|All files", this);
+		QUrl url = QFileDialog::getSaveFileUrl(this, QString(), sw->documentUrl(), "*.sql|SQL scripts\n*.txt|Text files\n*|All files");
 		if(!url.isEmpty())
 			sw->saveAs(url);
 	}
@@ -434,34 +432,31 @@ void MainWindow::exportResults(QAction *action)
 			this);
 
 	if(!filename.fileNames.at(0).isEmpty()) {
-		KSaveFile file(filename.fileNames.at(0));
-		if(!file.open()) {
+		QSaveFile file(filename.fileNames.at(0));
+		if(!file.open(QSaveFile::WriteOnly)) {
 			KMessageBox::error(this, file.errorString());
 		} else {
-			Exporter *exporter = Exporters::instance().get(format);
+			QScopedPointer<Exporter> exporter(Exporters::instance().get(format));
 
 			exporter->startFile(&file, filename.encoding, m_tabs->tabText(m_tabs->currentIndex()));
 
-			TableCellIterator *iterator;
+			QScopedPointer<TableCellIterator> iterator;
 			if(ScriptWidget *sw = qobject_cast<ScriptWidget*>(m_tabs->currentWidget()))
-				iterator = sw->tableIterator();
+				iterator.reset(sw->tableIterator());
 			else if(QueryWidget *qw = qobject_cast<QueryWidget*>(m_tabs->currentWidget()))
-				iterator = qw->tableIterator();
+				iterator.reset(qw->tableIterator());
 			else {
 				qFatal("Weird tab encountered!");
 				return;
 			}
 
 			while(iterator->nextTable())
-				exporter->beginTable(iterator);
+				exporter->beginTable(iterator.data());
 
-			delete iterator;
 			exporter->done();
-			delete exporter;
 
-			if(!file.finalize())
+			if(!file.commit())
 				KMessageBox::error(this, file.errorString());
-			file.close();
 		}
 	}
 }

@@ -17,8 +17,11 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <QMetaType>
 #include "schema.h"
+
+#include <QMetaType>
+
+namespace meta {
 
 /**
   \brief Description of a database
@@ -47,6 +50,8 @@ private:
 	QVector<Schema> m_schemas;
 };
 
-Q_DECLARE_METATYPE(Database)
+}
+
+Q_DECLARE_METATYPE(meta::Database)
 
 #endif // DATABASE_H

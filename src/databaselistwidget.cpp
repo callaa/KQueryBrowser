@@ -1,14 +1,14 @@
-#include <QMenu>
-#include <QFont>
-
-#include <KListWidget>
 
 #include "databaselistwidget.h"
+
+#include <QMenu>
+#include <QFont>
+#include <QListWidget>
 
 DatabaseListWidget::DatabaseListWidget(bool canswitch, QWidget *parent) :
 	QDockWidget(tr("Databases"), parent), m_canswitch(canswitch)
 {
-	m_view = new KListWidget(this);
+	m_view = new QListWidget(this);
 	m_view->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 

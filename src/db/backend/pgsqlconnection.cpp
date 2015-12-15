@@ -19,10 +19,12 @@
 #include <QStringList>
 
 #include "pgsqlconnection.h"
-#include "../meta/table.h"
-#include "../stringbuilder.h"
+#include "../../meta/table.h"
+#include "../../stringbuilder.h"
 
-PgsqlConnection::PgsqlConnection(const KUrl& url, QObject *parent) :
+namespace db {
+
+PgsqlConnection::PgsqlConnection(const QUrl& url, QObject *parent) :
     ServerConnection(url, parent)
 {
 }
@@ -44,10 +46,10 @@ static QString typestr(const QString &datatype, const QVariant &maxcharlen)
 	return type.toString();
 }
 
-QVector<Schema> PgsqlConnection::schemas()
+QVector<meta::Schema> PgsqlConnection::schemas()
 {
 	QSqlQuery q("SELECT table_schema, table_name, table_type, column_name, data_type,character_maximum_length FROM information_schema.columns NATURAL JOIN information_schema.tables ORDER BY table_schema, table_name, ordinal_position ASC", m_db);
-	QVector<Schema> schemas;
+	QVector<meta::Schema> schemas;
 	while(q.next()) {
 		QString sname = q.value(0).toString();
 		QString tname = q.value(1).toString();
@@ -57,20 +59,20 @@ QVector<Schema> PgsqlConnection::schemas()
 		QVariant cmaxlen = q.value(5);
 
 		// Find schema
-		Schema *schema=0;
+		meta::Schema *schema=0;
 		if(schemas.isEmpty() || schemas.last().name() != sname)
-			schemas.append(Schema(sname, QVector<Table>()));
+			schemas.append(meta::Schema(sname, QVector<meta::Table>()));
 		schema = &schemas.last();
 
 		// Find table
-		Table *table=0;
+		meta::Table *table=0;
 		if(schema->tables().isEmpty() || schema->tables().last().name() != tname) {
-			Table::Type type = Table::TABLE;
+			meta::Table::Type type = meta::Table::TABLE;
 			if(ttype=="VIEW")
-				type = Table::VIEW;
+				type = meta::Table::VIEW;
 			else if(sname == "pg_catalog")
-				type = Table::SYSTEMTABLE;
-			schema->tables().append(Table(tname, QVector<Column>(), type));
+				type = meta::Table::SYSTEMTABLE;
+			schema->tables().append(meta::Table(tname, QVector<meta::Column>(), type));
 		}
 		table = &schema->tables().last();
 
@@ -104,22 +106,22 @@ QVector<Schema> PgsqlConnection::schemas()
 
 		// TODO optimize
 		for(int i=0;i<schemas.count();++i) {
-			Schema &s = schemas[i];
+			meta::Schema &s = schemas[i];
 			if(s.name() == schema) {
 				for(int j=0;j<s.tables().count();++j) {
-					Table &t = s.tables()[j];
+					meta::Table &t = s.tables()[j];
 					if(t.name() == table) {
 						for(int k=0;k<t.columns().count();++k) {
-							Column &c = t.columns()[k];
+							meta::Column &c = t.columns()[k];
 							if(c.name() == column) {
 								if(type == "FOREIGN KEY") {
-									c.setFk(ForeignKey(
+									c.setFk(meta::ForeignKey(
 												q.value(4).toString(),
 												q.value(5).toString(),
 												q.value(6).toString(),
 												q.value(7).toString(),
-												ForeignKey::rulestring(q.value(8).toString()),
-												ForeignKey::rulestring(q.value(9).toString())
+												meta::ForeignKey::rulestring(q.value(8).toString()),
+												meta::ForeignKey::rulestring(q.value(9).toString())
 												));
 								} else if(type=="PRIMARY KEY") {
 									c.setPk(true);
@@ -146,5 +148,7 @@ QStringList PgsqlConnection::databases()
 	while(q.next())
 		list << q.value(0).toString();
 	return list;
+}
+
 }
 

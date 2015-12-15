@@ -17,24 +17,25 @@
 #ifndef CONNECTIONDIALOG_H
 #define CONNECTIONDIALOG_H
 
-#include <KDialog>
+#include <QDialog>
 #include <KBookmarkOwner>
 
 namespace Ui {
     class ConnectionDialog;
 }
-
-class Connection;
+namespace db {
+	class Connection;
+}
 class QUrl;
 
-class ConnectionDialog : public KDialog, public KBookmarkOwner
+class ConnectionDialog : public QDialog, public KBookmarkOwner
 {
     Q_OBJECT
 
 public:
     explicit ConnectionDialog(QWidget *parent = 0);
 
-	static ConnectionDialog *open(const QUrl& url);
+	static ConnectionDialog *openDialog(const QUrl& url);
 
     ~ConnectionDialog();
 
@@ -50,7 +51,6 @@ public:
 
 protected slots:
 	void typeSelected(int index);
-	void slotButtonClicked(int button);
 	void opened();
 	void failed(const QString& message);
 
@@ -58,7 +58,7 @@ private:
 	void openConnection();
 
 	Ui::ConnectionDialog *m_ui;
-	Connection *m_connection;
+	db::Connection *m_connection;
 };
 
 #endif // CONNECTIONDIALOG_H

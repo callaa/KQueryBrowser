@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QDebug>
-#include <QSqlRecord>
-#include <QStringList>
-
 #include "dbctxmanager.h"
 #include "dbcontext.h"
 #include "connection.h"
 #include "../meta/database.h"
+
+#include <QDebug>
+#include <QSqlRecord>
+#include <QStringList>
+#include <QDebug>
+
+namespace db {
 
 DbCtxManager::DbCtxManager(Connection *connection) :
 	QObject(), m_connection(connection)
@@ -34,7 +37,7 @@ void DbCtxManager::createContext(QObject *forthis)
 	DbContext *ctx = new DbContext(forthis, m_connection->m_db, this);
 	connect(forthis, SIGNAL(doQuery(QString, int)), ctx, SLOT(doQuery(QString, int)));
 	connect(forthis, SIGNAL(getMoreResults(int)), ctx, SLOT(getMoreResults(int)));
-	connect(ctx, SIGNAL(results(QueryResults)), forthis, SLOT(queryResults(QueryResults)));
+	connect(ctx, SIGNAL(results(db::QueryResults)), forthis, SLOT(queryResults(db::QueryResults)));
 	connect(forthis, SIGNAL(destroyed(QObject*)), this, SLOT(removeContext(QObject*)));
 }
 
@@ -53,7 +56,7 @@ void DbCtxManager::removeContext(QObject *forthis)
 
 void DbCtxManager::getDbStructure()
 {
-	emit dbStructure(Database(m_connection->schemas()));
+	emit dbStructure(meta::Database(m_connection->schemas()));
 }
 
 void DbCtxManager::getDbList()
@@ -72,7 +75,9 @@ void DbCtxManager::switchDatabase(const QString& database)
 		getDbList();
 		getDbStructure();
 	} else {
-		qWarning("Database switch (%s) failed!", database.toAscii().constData());
+		qWarning() << "Database switch (" << database << ") failed!";
 	}
+}
+
 }
 

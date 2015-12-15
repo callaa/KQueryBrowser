@@ -1,12 +1,11 @@
+#include "exporter.h"
+#include "../meta/column.h"
+
 #include <QVariant>
 #include <QFile>
 #include <QTextCodec>
 #include <QTextStream>
-
-#include <KStandardDirs>
-
-#include "exporter.h"
-#include "../meta/column.h"
+#include <QStandardPaths>
 
 class HtmlExporter : public Exporter {
 public:
@@ -49,10 +48,10 @@ void HtmlExporter::startFile(QIODevice *file, const QString& encoding, const QSt
 {
 	// Output stream in requested encoding
 	m_out = new QTextStream(file);
-	m_out->setCodec(QTextCodec::codecForName(encoding.toAscii()));
+	m_out->setCodec(QTextCodec::codecForName(encoding.toUtf8()));
 
 	// Template input stream (template is in UTF-8)
-	m_tplfile = new QFile(KStandardDirs::locate("appdata", "export.html"));
+	m_tplfile = new QFile(":ui/export.html");
 	m_tplfile->open(QIODevice::ReadOnly | QIODevice::Text);
 	m_tpl = new QTextStream(m_tplfile);
 

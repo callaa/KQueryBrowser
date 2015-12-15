@@ -17,9 +17,11 @@
 #ifndef TABLE_H
 #define TABLE_H
 
+#include "column.h"
+
 #include <QVector>
 
-#include "column.h"
+namespace meta {
 
 /**
   \brief A description of a table
@@ -55,5 +57,7 @@ private:
 	QVector<Column> m_columns;
 	Type m_type;
 };
+
+}
 
 #endif // TABLE_H

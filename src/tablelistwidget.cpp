@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include "tablelistwidget.h"
+#include "meta/database.h"
+
 #include <QDebug>
 #include <QTreeWidget>
 #include <QHeaderView>
 #include <QMenu>
-
-#include "tablelistwidget.h"
-#include "meta/database.h"
 
 TableListWidget::TableListWidget(bool canshowcreate, QWidget *parent) :
 	QDockWidget(tr("Tables"), parent), m_canshowcreate(canshowcreate)
@@ -33,7 +33,7 @@ TableListWidget::TableListWidget(bool canshowcreate, QWidget *parent) :
 	m_view->header()->hide();
 }
 
-void TableListWidget::refreshTree(const Database &db)
+void TableListWidget::refreshTree(const meta::Database &db)
 {
 	QIcon iconTable(":/icons/table.png");
 	QIcon iconView(":/icons/view.png");
@@ -67,7 +67,7 @@ void TableListWidget::refreshTree(const Database &db)
 
 	// Build the new tree
 	const bool hasSchemas = !db.noSchemas();
-	foreach(const Schema& schema, db.schemas()) {
+	for(const meta::Schema &schema : db.schemas()) {
 		QTreeWidgetItem *s=0;
 
 		// If the DBMS doesn't have schemas, show tables as
@@ -78,17 +78,17 @@ void TableListWidget::refreshTree(const Database &db)
 			s->setData(0, Qt::UserRole, 0);
 		}
 
-		foreach(const Table& table, schema.tables()) {
+		for(const meta::Table &table : schema.tables()) {
 			QTreeWidgetItem *t = s!=0 ? new QTreeWidgetItem(s) : new QTreeWidgetItem(m_view);
 			t->setText(0, table.name());
 			switch(table.type()) {
-				case Table::TABLE: t->setIcon(0, iconTable); break;
-				case Table::VIEW: t->setIcon(0, iconView); break;
-				case Table::SYSTEMTABLE: t->setIcon(0, iconSys); break;
+				case meta::Table::TABLE: t->setIcon(0, iconTable); break;
+				case meta::Table::VIEW: t->setIcon(0, iconView); break;
+				case meta::Table::SYSTEMTABLE: t->setIcon(0, iconSys); break;
 			}
 			t->setData(0, Qt::UserRole, 1);
 
-			foreach(const Column &col, table.columns()) {
+			for(const meta::Column &col : table.columns()) {
 				QTreeWidgetItem *c = new QTreeWidgetItem(t);
 				c->setText(0, col.name());
 				c->setData(0, Qt::UserRole, 2);

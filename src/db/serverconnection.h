@@ -19,6 +19,8 @@
 
 #include "connection.h"
 
+namespace db {
+
 /**
  * \brief Base class for server based database connections.
  *
@@ -29,7 +31,7 @@ class ServerConnection : public Connection
 {
     Q_OBJECT
 public:
-	ServerConnection(const KUrl& url, QObject *parent);
+	ServerConnection(const QUrl& url, QObject *parent);
 
 	QString name() const;
 
@@ -45,5 +47,7 @@ protected:
 	 */
 	virtual int defaultPort() const = 0;
 };
+
+}
 
 #endif // SERVERCONNECTION_H

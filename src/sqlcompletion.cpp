@@ -57,17 +57,17 @@ QString SqlCompletion::makeCompletion( const QString& string )
 	}
 }
 
-void SqlCompletion::refreshModel(const Database& db)
+void SqlCompletion::refreshModel(const meta::Database& db)
 {
 	clear();
 	for(unsigned int i=0;i<sizeof(SQL_ITEMS)/sizeof(QString);++i)
 		addItem(SQL_ITEMS[i]);
 
-	foreach(const Schema &s, db.schemas()) {
+	for(const meta::Schema &s : db.schemas()) {
 		addItem(s.name());
-		foreach(const Table &t, s.tables()) {
+		for(const meta::Table &t : s.tables()) {
 			addItem(t.name());
-			foreach(const Column &c, t.columns()) {
+			for(const meta::Column &c : t.columns()) {
 				addItem(c.name());
 			}
 		}

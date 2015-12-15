@@ -19,6 +19,8 @@
 
 #include "table.h"
 
+namespace meta {
+
 class Schema
 {
 public:
@@ -33,6 +35,8 @@ private:
 	QString m_name;
 	QVector<Table> m_tables;
 };
+
+}
 
 #endif
 

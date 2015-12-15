@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ValueViewWidget</class>
- <widget class="QWidget" name="Form">
+ <widget class="QDialog" name="ValueViewWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>-1</number>
      </property>
     </widget>
    </item>
@@ -53,14 +53,38 @@
      <item>
       <widget class="QRadioButton" name="modeHex">
        <property name="text">
-        <string>&amp;Hex</string>
+        <string>He&amp;x</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close|QDialogButtonBox::Save</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>ValueViewWidget</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>356</x>
+     <y>369</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>384</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

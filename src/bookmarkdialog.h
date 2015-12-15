@@ -14,7 +14,9 @@ public:
 	BookmarkDialog(KBookmarkManager *mgr, QWidget *parent=0);
 
 protected:
+#if 0
 	void save(BookmarkDialogMode mode, const KBookmark &bm);
+#endif
 };
 
 #endif

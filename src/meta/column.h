@@ -19,6 +19,8 @@
 
 #include <QString>
 
+namespace meta {
+
 /**
  * \brief Column foreign key constraint
  */
@@ -180,5 +182,7 @@ private:
 	bool m_unique;
 	ForeignKey m_fk;
 };
+
+}
 
 #endif // COLUMN_H

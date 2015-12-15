@@ -17,7 +17,9 @@
 #ifndef PGSQLCONNECTION_H
 #define PGSQLCONNECTION_H
 
-#include "serverconnection.h"
+#include "../serverconnection.h"
+
+namespace db {
 
 /**
  \brief Connection handler for PostgreSQL
@@ -26,7 +28,7 @@ class PgsqlConnection : public ServerConnection
 {
     Q_OBJECT
 public:
-    PgsqlConnection(const KUrl& url, QObject *parent);
+    PgsqlConnection(const QUrl& url, QObject *parent);
 
 	bool isCapable(Capability capability) const;
 
@@ -34,8 +36,10 @@ protected:
 	QString type() const { return QString("QPSQL"); }
 	int defaultPort() const { return 5432; }
 
-	QVector<Schema> schemas();
+	QVector<meta::Schema> schemas();
 	QStringList databases();
 };
+
+}
 
 #endif // PGSQLCONNECTION_H

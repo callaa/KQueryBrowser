@@ -24,6 +24,8 @@
 
 #include "../meta/column.h"
 
+namespace db {
+
 class DbContext;
 
 typedef QVector<QVariant> ResultRow;
@@ -36,7 +38,7 @@ struct QueryResultsData : public QSharedData
 	int rowcount;
 	QString error;
 	ResultRows rows;
-	QVector<Column> columns;
+	QVector<meta::Column> columns;
 };
 
 class QueryResults
@@ -93,7 +95,7 @@ public:
 	  \brief Get the column metadata
 	  \return list of columns
 	  */
-	const QVector<Column> columns() const { return m_d->columns; }
+	const QVector<meta::Column> columns() const { return m_d->columns; }
 
 private:
 	QueryResults(QueryResultsData *data);
@@ -101,6 +103,8 @@ private:
 	QSharedDataPointer<QueryResultsData> m_d;
 };
 
-Q_DECLARE_METATYPE(QueryResults)
+}
+
+Q_DECLARE_METATYPE(db::QueryResults)
 
 #endif // QUERYRESULTS_H

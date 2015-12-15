@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include <QDebug>
-#include <QVBoxLayout>
-
-#include <KGlobal>
-#include <KGlobalSettings>
-#include <KConfigGroup>
-#include <KColorScheme>
-
 #include "querywidget.h"
 #include "queryview.h"
 #include "sqllineedit.h"
 #include "sqlcompletion.h"
 #include "db/queryresults.h"
 #include "ui_findwidget.h"
+
+#include <QDebug>
+#include <QVBoxLayout>
+
+#include <KSharedConfig>
+#include <KCompletion>
+#include <KConfigGroup>
+#include <KColorScheme>
 
 QueryWidget::QueryWidget(QWidget *parent) :
 	QWidget(parent), m_moreavailable(false)
@@ -43,10 +43,9 @@ QueryWidget::QueryWidget(QWidget *parent) :
 	// Completer for the query entry box
 	SqlCompletion *c = new SqlCompletion();
 	c->setIgnoreCase(true);
-	connect(this, SIGNAL(dbStructure(const Database&)),
-			c, SLOT(refreshModel(const Database&)));
+	connect(this, &QueryWidget::dbStructure, c, &SqlCompletion::refreshModel);
 	m_query->setCompletionObject(c);
-	m_query->setCompletionMode(KGlobalSettings::CompletionAuto);
+	m_query->setCompletionMode(KCompletion::CompletionAuto);
 
 	// Find in results widget
 	m_find = new QWidget(this);
@@ -62,14 +61,11 @@ QueryWidget::QueryWidget(QWidget *parent) :
 	connect(m_findui->casesensitive, SIGNAL(toggled(bool)),
 			this, SLOT(findNext()));
 
-	m_findui->closebutton->setIcon(KIcon("dialog-close"));
 	connect(m_findui->closebutton, SIGNAL(clicked(bool)),
 			m_find, SLOT(hide()));
 
-	m_findui->prevbutton->setIcon(KIcon("go-previous"));
 	connect(m_findui->nextbutton, SIGNAL(clicked(bool)),
 			this, SLOT(findNext()));
-	m_findui->nextbutton->setIcon(KIcon("go-next"));
 	connect(m_findui->prevbutton, SIGNAL(clicked(bool)),
 			this, SLOT(findPrev()));
 
@@ -98,7 +94,7 @@ void QueryWidget::runQuery(const QString &query)
 {
 	m_query->pushHistory(query);
 	m_view->startNewQuery(query);
-	int limit = KGlobal::config()->group("view").readEntry("resultsperpage", QueryView::DEFAULT_PAGESIZE);
+	int limit = KSharedConfig::openConfig()->group("view").readEntry("resultsperpage", QueryView::DEFAULT_PAGESIZE);
 	emit doQuery(query, limit);
 }
 
@@ -109,7 +105,7 @@ void QueryWidget::doQuery(const QString& q)
 			emit getMoreResults(10);
 	} else {
 		m_view->startNewQuery(q);
-		int limit = KGlobal::config()->group("view").readEntry("resultsperpage", QueryView::DEFAULT_PAGESIZE);
+		int limit = KSharedConfig::openConfig()->group("view").readEntry("resultsperpage", QueryView::DEFAULT_PAGESIZE);
 		emit doQuery(q, limit);
 	}
 }
@@ -150,7 +146,7 @@ void QueryWidget::findInPage(bool forward)
 	m_findui->findtext->setPalette(pal);
 }
 
-void QueryWidget::queryResults(const QueryResults &results)
+void QueryWidget::queryResults(const db::QueryResults &results)
 {
 	m_moreavailable = results.isMore();
 	m_view->showResults(results);

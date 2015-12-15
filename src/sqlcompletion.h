@@ -19,7 +19,9 @@
 
 #include <KCompletion>
 
-class Database;
+namespace meta {
+	class Database;
+}
 
 class SqlCompletion : public KCompletion
 {
@@ -29,7 +31,7 @@ public:
 	QString makeCompletion(const QString& string);
 
 public slots:
-	void refreshModel(const Database& db);
+	void refreshModel(const meta::Database& db);
 };
 
 #endif

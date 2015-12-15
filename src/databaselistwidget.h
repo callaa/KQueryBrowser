@@ -3,7 +3,7 @@
 
 #include <QDockWidget>
 
-class KListWidget;
+class QListWidget;
 class QStringList;
 
 /**
@@ -46,7 +46,7 @@ protected slots:
 	void customContextMenu(const QPoint& point);
 
 private:
-	KListWidget *m_view;
+	QListWidget *m_view;
 	bool m_canswitch;
 };
 

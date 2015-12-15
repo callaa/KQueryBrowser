@@ -1,7 +1,8 @@
+#include "exporter.h"
+
 #include <QActionGroup>
 #include <QCoreApplication>
-
-#include "exporter.h"
+#include <QDebug>
 
 Exporters &Exporters::instance()
 {
@@ -12,7 +13,7 @@ Exporters &Exporters::instance()
 void Exporters::registerExporter(ExporterFactory *factory)
 {
 	if(m_factory.contains(factory->format()))
-		qWarning("Format %s already registerd.", factory->format().toAscii().constData());
+		qWarning() << "Format" << factory->format() << "already registerd.";
 	m_factory.insert(factory->format(), factory);
 }
 

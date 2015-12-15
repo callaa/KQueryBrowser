@@ -19,11 +19,14 @@
 #include <QSqlError>
 #include <QVariant>
 #include <QStringList>
+#include <QDebug>
 
 #include "mysqlconnection.h"
-#include "../meta/table.h"
+#include "../../meta/table.h"
 
-MysqlConnection::MysqlConnection(const KUrl& url, QObject *parent) :
+namespace db {
+
+MysqlConnection::MysqlConnection(const QUrl& url, QObject *parent) :
     ServerConnection(url, parent)
 {
 }
@@ -37,24 +40,24 @@ bool MysqlConnection::isCapable(Capability capability) const
 	}
 }
 
-QVector<Schema> MysqlConnection::schemas()
+QVector<meta::Schema> MysqlConnection::schemas()
 {
-	QVector<Table> tables;
+	QVector<meta::Table> tables;
 
 	// Get tables
 	QSqlQuery q("show full tables", m_db);
 	while(q.next()) {
-		tables.append(Table(q.value(0).toString(), QVector<Column>(), q.value(1).toString() == "VIEW" ? Table::VIEW : Table::TABLE));
+		tables.append(meta::Table(q.value(0).toString(), QVector<meta::Column>(), q.value(1).toString() == "VIEW" ? meta::Table::VIEW : meta::Table::TABLE));
 	}
 
 	// Get columns for tables
 	for(int i=0;i<tables.count();++i) {
-		Table &t = tables[i];
+		meta::Table &t = tables[i];
 		q.exec("explain " + t.name());
 
 		// Explanation columns are: Field, type, null, key, default, extra
 		while(q.next()) {
-			Column c(q.value(0).toString());
+			meta::Column c(q.value(0).toString());
 			c.setType(q.value(1).toString());
 			c.setPk(q.value(3).toString() == "PRI");
 			c.setUnique(q.value(3).toString() == "UNI");
@@ -78,29 +81,29 @@ QVector<Schema> MysqlConnection::schemas()
 
 		// Find table and column
 		for(int i=0;i<tables.count();++i) {
-			Table &t = tables[i];
+			meta::Table &t = tables[i];
 			if(t.name() != tname)
 				continue;
 			for(int j=0;j<t.columns().count();++j) {
-				Column &c = t.columns()[j];
+				meta::Column &c = t.columns()[j];
 				if(c.name() != cname)
 					continue;
 
 				// Set foreign key
-				c.setFk(ForeignKey(
+				c.setFk(meta::ForeignKey(
 							q.value(2).toString(),
 							QString(),
 							q.value(3).toString(),
 							q.value(4).toString(),
-							ForeignKey::rulestring(q.value(5).toString()),
-							ForeignKey::rulestring(q.value(6).toString())
+							meta::ForeignKey::rulestring(q.value(5).toString()),
+							meta::ForeignKey::rulestring(q.value(6).toString())
 							));
 			}
 		}
 	}
 
-	QVector<Schema> schemas(1);
-	schemas[0] = Schema(QString(), tables);
+	QVector<meta::Schema> schemas(1);
+	schemas[0] = meta::Schema(QString(), tables);
 	return schemas;
 }
 
@@ -117,7 +120,7 @@ bool MysqlConnection::selectDatabase(const QString& database)
 {
 	QSqlQuery q(m_db);
 	if(q.exec("USE " + database)) {
-		KUrl newurl = url();
+		QUrl newurl = url();
 		newurl.setPath(database);
 		changeUrl(newurl);
 		return true;
@@ -130,11 +133,11 @@ QString MysqlConnection::createScript(const QString& table)
 	QSqlQuery q("SHOW CREATE TABLE " + table, m_db);
 	// This query returns two columns: table name, create
 	if(!q.next()) {
-		qWarning("Couldn't show table (%s) creation script: %s",
-				table.toAscii().constData(),
-				q.lastError().text().toAscii().constData());
+		qWarning() << "Couldn't show table (" << table << ") creation script: " << q.lastError().text();
 		return QString();
 	}
 	return q.value(1).toString();
+}
+
 }
 

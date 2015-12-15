@@ -20,13 +20,13 @@
 #include <QBuffer>
 #include <QHelpEvent>
 #include <QWhatsThis>
+#include <QSaveFile>
+#include <QDebug>
 
-#include <KStandardDirs>
-#include <KConfig>
+#include <KSharedConfig>
 #include <KConfigGroup>
 #include <KMessageBox>
 #include <KEncodingFileDialog>
-#include <KSaveFile>
 
 #include "queryview.h"
 #include "db/queryresults.h"
@@ -45,7 +45,7 @@ public:
 
 	int columns() const { return m_cheaders.count(); }
 	int rows() const { return m_crows; }
-	const Column& header(int column) const { return m_cheaders.at(column); }
+	const meta::Column& header(int column) const { return m_cheaders.at(column); }
 	const QString& query() const { return m_query; }
 
 	bool nextColumn();
@@ -63,7 +63,7 @@ private:
 	QString m_query;
 	QString m_queryid;
 	int m_crows;
-	QVector<Column> m_cheaders;
+	QVector<meta::Column> m_cheaders;
 	QWebElement m_el;
 };
 
@@ -74,11 +74,7 @@ QueryView::QueryView(QWidget *parent) :
 	connect(this, SIGNAL(loadFinished(bool)), this, SLOT(initQueryBrowser(bool)));
 
 	// Build initial content for the web view
-	QString root = KStandardDirs::installPath("data") + "kquerybrowser/";
-	QString style = root + "querystyle.css";
-	QString script = root + "queryscript.js";
-
-	setHtml("<html><head><link href=\"file://" + style + "\" rel=\"stylesheet\"><script type=\"text/javascript\" src=\"file://" + script + "\"></script><title>KQueryBrowser</title></head><body></body></html>");
+	setHtml("<html><head><link href=\"qrc:ui/querystyle.css\" rel=\"stylesheet\"><script type=\"text/javascript\" src=\"qrc:ui/queryscript.js\"></script><title>KQueryBrowser</title></head><body></body></html>");
 
 	page()->currentFrame()->addToJavaScriptWindowObject("qbrowser", this);
 
@@ -91,7 +87,7 @@ void QueryView::initQueryBrowser(bool ok)
 	else {
 		StringBuilder sb;
 		sb << "qb_init([";
-		foreach(ExporterFactory *ef, Exporters::instance().exporters()) {
+		for(ExporterFactory *ef : Exporters::instance().exporters()) {
 			sb << "{format: '" << ef->format() << "'";
 			if(!ef->icon().isNull()) {
 				sb << ", icon: 'data:image/png;base64,";
@@ -112,7 +108,7 @@ void QueryView::initQueryBrowser(bool ok)
 void QueryView::clear()
 {
 	m_bigresults.clear();
-	foreach(QWebElement e, page()->currentFrame()->findAllElements("div.query"))
+	Q_FOREACH(QWebElement e, page()->currentFrame()->findAllElements("div.query"))
 		e.removeFromDocument();
 }
 
@@ -136,7 +132,7 @@ static QString esc(QString text) {
 	return text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
 }
 
-static void makeTable(QWebElement parent, const QVector<Column> &columns, const ResultRows &rows, bool newtable, QVector<BigValue> &bigresults, QStringList &columnnames)
+static void makeTable(QWebElement parent, const QVector<meta::Column> &columns, const db::ResultRows &rows, bool newtable, QVector<BigValue> &bigresults, QStringList &columnnames)
 {
 	StringBuilder html;
 
@@ -155,14 +151,14 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 		const QString eTH("</th>");
 		html << "<table><thead><tr>";
 		columnnames.clear();
-		foreach(const Column& c, columns) {
+		for(const meta::Column &c : columns) {
 			html << TH_ << c.type() << _TH << esc(c.name()) << eTH;
 			columnnames << c.name();
 		}
 		html << "</tr></thead><tbody>\n";
 	}
 
-	foreach(const ResultRow row, rows) {
+	for(const db::ResultRow &row : rows) {
 		html << TR;
 		int col=0;
 		foreach(const QVariant& c, row) {
@@ -193,7 +189,7 @@ static void makeTable(QWebElement parent, const QVector<Column> &columns, const 
 
 }
 
-void QueryView::showResults(const QueryResults &results)
+void QueryView::showResults(const db::QueryResults &results)
 {
 	QWebFrame *w = page()->currentFrame();
 	w->findFirstElement(".wait").removeFromDocument();
@@ -232,13 +228,13 @@ void QueryView::showBigResult(int index)
 
 	const BigValue &bv = m_bigresults.at(index);
 	ValueView *view = new ValueView(bv.second, this);
-	view->setCaption(bv.first);
+	view->setWindowTitle(bv.first);
 	view->show();
 }
 
 void QueryView::queryGetMore()
 {
-	int limit = KGlobal::config()->group("view").readEntry("resultsperpage", DEFAULT_PAGESIZE);
+	int limit = KSharedConfig::openConfig()->group("view").readEntry("resultsperpage", DEFAULT_PAGESIZE);
 	emit getMoreResults(limit);
 }
 
@@ -298,8 +294,8 @@ void QueryView::exportTable(const QString& id, const QString& format)
 			this);
 	
 	if(!filename.fileNames.at(0).isEmpty()) {
-		KSaveFile file(filename.fileNames.at(0));
-		if(!file.open()) {
+		QSaveFile file(filename.fileNames.at(0));
+		if(!file.open(QSaveFile::WriteOnly)) {
 			KMessageBox::error(this, file.errorString());
 		} else {
 			HtmlTableIterator iterator(page()->currentFrame(), m_bigresults);
@@ -318,9 +314,8 @@ void QueryView::exportTable(const QString& id, const QString& format)
 			exporter->done();
 			delete exporter;
 
-			if(!file.finalize())
+			if(!file.commit())
 				KMessageBox::error(this, file.errorString());
-			file.close();
 		}
 	}
 
@@ -349,7 +344,7 @@ bool HtmlTableIterator::nextTable()
 
 	m_cheaders.clear();
 	for(int i=0;i<headers.count();++i)
-		m_cheaders.append(Column(headers.at(i).toPlainText()));
+		m_cheaders.append(meta::Column(headers.at(i).toPlainText()));
 
 	// Get query string
 	m_query = m_el.findFirst("p.query").toPlainText();
@@ -371,7 +366,7 @@ bool HtmlTableIterator::nextRow()
 	else if(m_el.tagName() == "DIV")
 		m_el = m_el.findFirst("tbody>tr");
 	else {
-		qWarning("Element pointer at a %s, expected tr or div!", m_el.tagName().toAscii().constData());
+		qWarning() << "Element pointer at a" << m_el.tagName() << ", expected tr or div!";
 		return false;
 	}
 
@@ -399,7 +394,7 @@ bool HtmlTableIterator::nextColumn()
 	} else if(m_el.tagName()=="TR") {
 		m_el = m_el.firstChild();
 	} else {
-		qWarning("Element pointer at a %s, expected td or tr!", m_el.tagName().toAscii().constData());
+		qWarning() << "Element pointer at a" << m_el.tagName() << ", expected td or tr!";
 		return false;
 	}
 
