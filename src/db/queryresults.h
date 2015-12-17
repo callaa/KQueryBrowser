@@ -26,7 +26,7 @@
 
 namespace db {
 
-class DbContext;
+class Query;
 
 typedef QVector<QVariant> ResultRow;
 typedef QVector<ResultRow> ResultRows;
@@ -43,7 +43,7 @@ struct QueryResultsData : public QSharedData
 
 class QueryResults
 {
-	friend class DbContext;
+	friend class Query;
 public:
 	QueryResults();
 

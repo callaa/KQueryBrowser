@@ -24,6 +24,7 @@ namespace db {
 	class Connection;
 }
 
+class QueryWidget;
 class QTabWidget;
 class KRecentFilesAction;
 class KBookmarkDialog;
@@ -49,7 +50,7 @@ public:
 
 public slots:
 	//! Open a new query tab
-	void newQueryTab();
+	QueryWidget *newQueryTab();
 
 	//! Open a new script tab
 	void newScriptTab(const QString& content);

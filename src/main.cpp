@@ -15,6 +15,7 @@
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "connectiondialog.h"
+#include "db/query.h"
 #include "db/queryresults.h"
 #include "meta/database.h"
 #include "bookmarks.h"
@@ -30,6 +31,7 @@
 void initApp(QApplication &app)
 {
 	qRegisterMetaType<db::QueryResults>();
+	qRegisterMetaType<db::Query*>("Query");
 	qRegisterMetaType<meta::Database>();
 
 	KAboutData aboutData(
@@ -90,3 +92,4 @@ int main (int argc, char *argv[])
 
 	return app.exec();
 }
+

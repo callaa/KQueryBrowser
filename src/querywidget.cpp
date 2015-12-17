@@ -18,6 +18,7 @@
 #include "queryview.h"
 #include "sqllineedit.h"
 #include "sqlcompletion.h"
+#include "db/query.h"
 #include "db/queryresults.h"
 #include "ui_findwidget.h"
 
@@ -30,15 +31,16 @@
 #include <KColorScheme>
 
 QueryWidget::QueryWidget(QWidget *parent) :
-	QWidget(parent), m_moreavailable(false)
+	QWidget(parent), m_ctx(nullptr), m_moreavailable(false)
 {
 	// The web view is used to show the results of the queries
 	m_view = new QueryView(this);
-	connect(m_view, SIGNAL(getMoreResults(int)), this, SIGNAL(getMoreResults(int)));
 
 	// The query entry box
 	m_query = new SqlLineEdit(this);
 	connect(m_query, SIGNAL(returnPressed(QString)), this, SLOT(doQuery(QString)));
+
+	m_query->setEnabled(false);
 
 	// Completer for the query entry box
 	SqlCompletion *c = new SqlCompletion();
@@ -78,6 +80,15 @@ QueryWidget::QueryWidget(QWidget *parent) :
 	setLayout(layout);
 }
 
+void QueryWidget::attachQueryContext(db::Query *qc)
+{
+	m_ctx = qc;
+	connect(this, &QObject::destroyed, m_ctx, &QObject::deleteLater);
+	connect(m_ctx, &db::Query::results, this, &QueryWidget::showResults);
+	connect(m_view, &QueryView::getMoreResults, m_ctx, &db::Query::getMoreResults);
+	m_query->setEnabled(true);
+}
+
 void QueryWidget::showSearch()
 {
 	m_find->show();
@@ -92,21 +103,31 @@ TableCellIterator *QueryWidget::tableIterator() const
 
 void QueryWidget::runQuery(const QString &query)
 {
+	if(!m_ctx) {
+		qWarning() << "Query context not yet attached!";
+		return;
+	}
+
 	m_query->pushHistory(query);
 	m_view->startNewQuery(query);
 	int limit = KSharedConfig::openConfig()->group("view").readEntry("resultsperpage", QueryView::DEFAULT_PAGESIZE);
-	emit doQuery(query, limit);
+	m_ctx->query(query, limit);
 }
 
 void QueryWidget::doQuery(const QString& q)
 {
+	if(!m_ctx) {
+		qWarning() << "Query context not yet attached!";
+		return;
+	}
+
 	if(q.isEmpty()) {
 		if(m_moreavailable)
-			emit getMoreResults(10);
+			m_ctx->getMoreResults(10);
 	} else {
 		m_view->startNewQuery(q);
 		int limit = KSharedConfig::openConfig()->group("view").readEntry("resultsperpage", QueryView::DEFAULT_PAGESIZE);
-		emit doQuery(q, limit);
+		m_ctx->query(q, limit);
 	}
 }
 
@@ -146,7 +167,7 @@ void QueryWidget::findInPage(bool forward)
 	m_findui->findtext->setPalette(pal);
 }
 
-void QueryWidget::queryResults(const db::QueryResults &results)
+void QueryWidget::showResults(const db::QueryResults &results)
 {
 	m_moreavailable = results.isMore();
 	m_view->showResults(results);

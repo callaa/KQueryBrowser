@@ -20,8 +20,7 @@ find_package(OktetaGui REQUIRED)
 set(kquerybrowser_SRCS
 	db/connection.cpp
 	db/serverconnection.cpp
-	db/dbctxmanager.cpp
-	db/dbcontext.cpp
+	db/query.cpp
 	db/queryresults.cpp
 	db/backend/sqlite3connection.cpp
 	db/backend/mysqlconnection.cpp

@@ -25,6 +25,7 @@ namespace KTextEditor {
 	class Document;
 }
 namespace db {
+	class Query;
 	class QueryResults;
 }
 class QueryView;
@@ -72,28 +73,14 @@ public:
 
 signals:
 	/**
-	 * \brief A query was requested
-	 *
-	 * This is part of the unified interface of widgets that have
-	 * query contexts
-	 * \param query the query string
-	 * \param limit maximum number of results to return at once
-	 */
-	void doQuery(const QString& query, int limit);
-
-	/**
-	 * \brief Request more results
-	 * \param limit maximum number of results to return at once
-	 */
-	void getMoreResults(int limit);
-
-	/**
 	 * \brief Name of the script has changed
 	 * \param name the new name
 	 */
 	void nameChange(const QString& name);
 
 public slots:
+	void attachQueryContext(db::Query *ctx);
+
 	/**
 	 * \brief Execute the script
 	 */
@@ -104,18 +91,13 @@ public slots:
 	 */
 	void executeSelection();
 
-	/**
-	 * \brief Show the results of a query
-	 * \param results query results
-	 */
-	void queryResults(const db::QueryResults& results);
 
 	/**
 	 * \brief Clear away all query results
 	 */
 	void clearResults();
 
-protected slots:
+private slots:
 	void scriptModifiedChanged();
 	void selectionChanged();
 
@@ -125,9 +107,12 @@ protected:
 private:
 
 	QUrl m_documenturl;
+	db::Query *m_ctx;
 	KTextEditor::Document *m_document;
 	KTextEditor::View *m_view;
 	QueryView *m_resultview;
+
+	QAction *m_actrun;
 	QAction *m_actrunsel;
 };
 

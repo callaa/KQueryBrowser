@@ -29,7 +29,7 @@ class MysqlConnection : public ServerConnection
 {
     Q_OBJECT
 public:
-    MysqlConnection(const QUrl& url, QObject *parent);
+    MysqlConnection(const QUrl& url, QObject *parent=nullptr);
 
 	bool isCapable(Capability capability) const;
 
@@ -37,11 +37,10 @@ protected:
 	QString type() const { return QString("QMYSQL"); }
 	int defaultPort() const { return 3306; }
 
-	bool selectDatabase(const QString& database);
-	QString createScript(const QString& table);
-
-	QVector<meta::Schema> schemas();
-	QStringList databases();
+	void doGetDbStructure();
+	void doGetDbList();
+	void doGetCreateScript(const QString& table);
+	void doSwitchDatabase(const QString& database) override;
 };
 
 }

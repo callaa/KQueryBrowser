@@ -20,33 +20,39 @@
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QSqlError>
+#include <QTimer>
 
 #include <climits>
 
-#include "dbcontext.h"
+#include "query.h"
 #include "queryresults.h"
 
 namespace db {
 
-DbContext::DbContext(QObject *target, QSqlDatabase &db, QObject *parent) :
-	QObject(parent), m_db(db), m_query(0), m_target(target)
+Query::Query(QSqlDatabase &db, QObject *parent) :
+	QObject(parent), m_db(db)
 {
 }
 
-DbContext::~DbContext()
+Query::~Query()
 {
-	delete m_query;
 }
 
-void DbContext::doQuery(const QString &querystr, int limit)
+void Query::query(const QString &querystr, int limit)
 {
-	delete m_query;
-	m_query = new QSqlQuery(m_db);
+	QMetaObject::invokeMethod(this, "doQuery", Qt::AutoConnection, Q_ARG(QString, querystr), Q_ARG(int, limit));
+}
+
+void Query::doQuery(const QString &querystr, int limit)
+{
+	m_limit = limit;
+	m_query.reset(new QSqlQuery(m_db));
 	m_query->setForwardOnly(true);
 
 	if(m_query->exec(querystr)) {
 		// No errors, get results
-		getNewResults(limit);
+		getNewResults();
+
 	} else {
 		// An error occurred. Report error
 		QueryResultsData *res = new QueryResultsData();
@@ -62,14 +68,18 @@ void DbContext::doQuery(const QString &querystr, int limit)
 		res->error = QString("%1 [%2]: %3").arg(error).arg(m_query->lastError().number()).arg(m_query->lastError().databaseText());
 
 		emit results(QueryResults(res));
-		delete m_query;
-		m_query = 0;
+		m_query.reset();
 	}
 
 }
 
-void DbContext::getNewResults(int limit)
+void Query::getNewResults()
 {
+	if(m_query.isNull()) {
+		qWarning() << "getNewResults: no active query!";
+		return;
+	}
+
 	QueryResultsData *res = new QueryResultsData();
 	res->success = true;
 	if(m_query->isSelect()) {
@@ -86,7 +96,7 @@ void DbContext::getNewResults(int limit)
 		}
 
 		// Get row data
-		gatherRows(res, cols, limit);
+		gatherRows(res, cols);
 	} else {
 		res->rowcount = m_query->numRowsAffected();
 	}
@@ -96,47 +106,52 @@ void DbContext::getNewResults(int limit)
 	// If limit has not been reached, see if there are more results
 	if(!res->more) {
 		if(m_query->nextResult()) {
-			getNewResults(limit);
+			QTimer::singleShot(1, this, &Query::getNewResults);
 		} else {
-			delete m_query;
-			m_query = 0;
+			m_query.reset();
 		}
 	}
 }
 
-void DbContext::getMoreResults(int limit)
+void Query::getMoreResults(int limit)
 {
+	QMetaObject::invokeMethod(this, "doGetMoreResults", Qt::AutoConnection, Q_ARG(int, limit));
+}
+
+void Query::doGetMoreResults(int limit)
+{
+	m_limit = limit;
 	QueryResultsData *res = new QueryResultsData();
 	res->continuation = true;
 	res->select = true;
-	if(m_query==0) {
+
+	if(m_query.isNull()) {
 		res->error = tr("No more results!");
 	} else {
 		res->success = true;
-		gatherRows(res, m_query->record().count(), limit);
+		gatherRows(res, m_query->record().count());
 	}
 
 	emit results(QueryResults(res));
 
 	if(!res->more) {
 		if(m_query->nextResult()) {
-			getNewResults(limit);
+			QTimer::singleShot(1, this, &Query::getNewResults);
 		} else {
-			delete m_query;
-			m_query = 0;
+			m_query.reset();
 		}
 	}
 }
 
-void DbContext::gatherRows(QueryResultsData *res, int cols, int limit)
+void Query::gatherRows(QueryResultsData *res, int cols)
 {
 	// Note. This is technically different than no limit at all, but
 	// practically, nobody is going to read INT_MAX rows anyway.
-	if(limit<=0)
-		limit = INT_MAX;
+	if(m_limit<=0)
+		m_limit = INT_MAX;
 
 	int count=0;
-	while(m_query->next() && ++count<limit) {
+	while(m_query->next() && ++count<m_limit) {
 		ResultRow row(cols);
 		for(int i=0;i<cols;++i)
 			row[i] = m_query->value(i);

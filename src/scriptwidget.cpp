@@ -17,6 +17,7 @@
 
 #include "scriptwidget.h"
 #include "queryview.h"
+#include "db/query.h"
 
 #include <QDebug>
 
@@ -33,7 +34,7 @@
 #include <KTextEditor/ConfigInterface>
 
 ScriptWidget::ScriptWidget(const QUrl& url, QWidget *parent) :
-	QWidget(parent), m_documenturl(url), m_document(0)
+	QWidget(parent), m_documenturl(url), m_ctx(nullptr), m_document(nullptr)
 {
 	// Load document
 	KTextEditor::Editor *editor = KTextEditor::Editor::instance();
@@ -79,14 +80,14 @@ ScriptWidget::ScriptWidget(const QUrl& url, QWidget *parent) :
 	toolbar->setIconSize(QSize(16,16));
 
 	// Actions
-	QAction *actExec = new QAction(QIcon::fromTheme("debug-run"), tr("Run"), this);
-	actExec->setToolTip(tr("Run the whole script"));
-	connect(actExec, SIGNAL(triggered()), this, SLOT(executeQuery()));
-	toolbar->addAction(actExec);
+	m_actrun = new QAction(QIcon::fromTheme("debug-run"), tr("Run"), this);
+	m_actrun->setToolTip(tr("Run the whole script"));
+	connect(m_actrun, &QAction::triggered, this, &ScriptWidget::executeQuery);
+	toolbar->addAction(m_actrun);
 
 	m_actrunsel = new QAction(QIcon::fromTheme("debug-run-cursor"), tr("Run selection"), this);
 	m_actrunsel->setToolTip(tr("Run just the selected part of the script"));
-	connect(m_actrunsel, SIGNAL(triggered()), this, SLOT(executeSelection()));
+	connect(m_actrunsel, &QAction::triggered, this, &ScriptWidget::executeSelection);
 	m_actrunsel->setEnabled(false);
 	toolbar->addAction(m_actrunsel);
 
@@ -124,27 +125,39 @@ void ScriptWidget::setContent(const QString& content)
 	m_document->setText(content);
 }
 
+void ScriptWidget::attachQueryContext(db::Query *ctx)
+{
+	m_ctx = ctx;
+	connect(this, &QObject::destroyed, m_ctx, &QObject::deleteLater);
+	connect(m_ctx, &db::Query::results, m_resultview, &QueryView::showResults);
+}
+
 void ScriptWidget::executeQuery()
 {
+	if(!m_ctx) {
+		qWarning() << "Query context not attached!";
+		return;
+	}
+
 	m_resultview->clear();
 	m_resultview->startNewQuery(QString());
 
 	// TODO this only executes the first statement on sqlite
-	emit doQuery(m_document->text(), 0);
+	m_ctx->query(m_document->text(), 0);
 }
 
 void ScriptWidget::executeSelection()
 {
+	if(!m_ctx) {
+		qWarning() << "Query context not attached!";
+		return;
+	}
+
 	m_resultview->clear();
 	m_resultview->startNewQuery(QString());
 
 	// TODO this only executes the first statement on sqlite
-	emit doQuery(m_view->selectionText(), 0);
-}
-
-void ScriptWidget::queryResults(const db::QueryResults& results)
-{
-	m_resultview->showResults(results);
+	m_ctx->query(m_view->selectionText(), 0);
 }
 
 void ScriptWidget::clearResults()
@@ -201,3 +214,4 @@ void ScriptWidget::showEvent(QShowEvent *e)
 	m_view->setFocus();
 	QWidget::showEvent(e);
 }
+

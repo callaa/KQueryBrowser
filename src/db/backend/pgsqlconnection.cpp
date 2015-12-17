@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+#include "pgsqlconnection.h"
+#include "../../meta/database.h"
+#include "../../meta/table.h"
+#include "../../meta/schema.h"
+#include "../../stringbuilder.h"
+
 #include <QSqlQuery>
 #include <QVariant>
 #include <QStringList>
-
-#include "pgsqlconnection.h"
-#include "../../meta/table.h"
-#include "../../stringbuilder.h"
 
 namespace db {
 
@@ -46,7 +49,7 @@ static QString typestr(const QString &datatype, const QVariant &maxcharlen)
 	return type.toString();
 }
 
-QVector<meta::Schema> PgsqlConnection::schemas()
+void PgsqlConnection::doGetDbStructure()
 {
 	QSqlQuery q("SELECT table_schema, table_name, table_type, column_name, data_type,character_maximum_length FROM information_schema.columns NATURAL JOIN information_schema.tables ORDER BY table_schema, table_name, ordinal_position ASC", m_db);
 	QVector<meta::Schema> schemas;
@@ -138,16 +141,16 @@ QVector<meta::Schema> PgsqlConnection::schemas()
 		}
 	}
 
-	return schemas;
+	emit dbStructure(meta::Database(schemas));
 }
 
-QStringList PgsqlConnection::databases()
+void PgsqlConnection::doGetDbList()
 {
 	QStringList list;
 	QSqlQuery q("SELECT datname FROM pg_database WHERE datallowconn=true ORDER BY datname ASC", m_db);
 	while(q.next())
 		list << q.value(0).toString();
-	return list;
+	emit dbList(list, name());
 }
 
 }

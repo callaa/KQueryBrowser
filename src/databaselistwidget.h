@@ -6,6 +6,10 @@
 class QListWidget;
 class QStringList;
 
+namespace db {
+	class Connection;
+}
+
 /**
  * \brief A dock widget that lists databases available to the logged in user
  */
@@ -13,14 +17,9 @@ class DatabaseListWidget : public QDockWidget
 {
     Q_OBJECT
 public:
-	explicit DatabaseListWidget(bool canswitch, QWidget *parent = 0);
+	explicit DatabaseListWidget(db::Connection *connection, QWidget *parent=nullptr);
 
 signals:
-	/**
-	 * \brief Request new database list
-	 */
-	void refresh();
-
 	/**
 	 * \brief Request opening of new connection to the named database
 	 * \param database the name of the database
@@ -47,6 +46,7 @@ protected slots:
 
 private:
 	QListWidget *m_view;
+	db::Connection *m_connection;
 	bool m_canswitch;
 };
 

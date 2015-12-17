@@ -20,20 +20,23 @@
 #include <QDockWidget>
 
 class QTreeWidget;
+
 namespace meta {
 	class Database;
+}
+namespace db {
+	class Connection;
 }
 
 class TableListWidget : public QDockWidget
 {
     Q_OBJECT
 public:
-    explicit TableListWidget(bool canshowcreate, QWidget *parent = 0);
+    explicit TableListWidget(db::Connection *connection, QWidget *parent = 0);
 
 signals:
+	//! Request a query to be run in the active query view
 	void runQuery(const QString& query);
-	void showCreate(const QString& table);
-	void refresh();
 
 public slots:
 	void refreshTree(const meta::Database& db);
@@ -43,7 +46,10 @@ protected slots:
 
 private:
 	QTreeWidget *m_view;
+	db::Connection *m_connection;
+
 	bool m_canshowcreate;
 };
 
 #endif // TABLELISTWIDGET_H
+

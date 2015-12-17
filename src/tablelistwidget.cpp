@@ -16,15 +16,17 @@
 //
 #include "tablelistwidget.h"
 #include "meta/database.h"
+#include "db/connection.h"
 
 #include <QDebug>
 #include <QTreeWidget>
 #include <QHeaderView>
 #include <QMenu>
 
-TableListWidget::TableListWidget(bool canshowcreate, QWidget *parent) :
-	QDockWidget(tr("Tables"), parent), m_canshowcreate(canshowcreate)
+TableListWidget::TableListWidget(db::Connection *connection, QWidget *parent) :
+	QDockWidget(tr("Tables"), parent), m_connection(connection)
 {
+	m_canshowcreate = connection->isCapable(db::Connection::SHOW_CREATE);
 	m_view = new QTreeWidget(this);
 	m_view->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
@@ -174,9 +176,9 @@ void TableListWidget::customContextMenu(const QPoint& point)
 	QAction *a = menu.exec(m_view->mapToGlobal(point));
 	if(a!=0) {
 		if(a==refreshAct)
-			emit refresh();
+			m_connection->getDbStructure();
 		else if(a==showcreate)
-			emit showCreate(a->property("tablename").toString());
+			m_connection->getCreateScript(a->property("tablename").toString());
 		else
 			emit runQuery(a->text());
 	}

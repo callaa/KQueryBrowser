@@ -183,5 +183,5 @@ void ConnectionDialog::openConnection()
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
 	// Go.
-	m_connection->start();
+	m_connection->open();
 }

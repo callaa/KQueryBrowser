@@ -17,13 +17,10 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
-#include <QThread>
+#include <QObject>
 #include <QSqlDatabase>
 #include <QMutex>
-
 #include <QUrl>
-
-#include "../meta/schema.h"
 
 class QSqlError;
 class QStringList;
@@ -34,14 +31,15 @@ namespace meta {
 
 namespace db {
 
-class DbCtxManager;
+class Query;
 
 /**
-  \brief A database connection thread.
+  \brief A database connection.
+
+  This typically lives in a separate thread.
   */
-class Connection : public QThread
+class Connection : public QObject
 {
-	friend class DbCtxManager;
     Q_OBJECT
 public:
     explicit Connection(const QUrl &url, QObject *parent = 0);
@@ -61,6 +59,8 @@ public:
 	/**
 	 \brief Create a new database connection.
 	
+	 The object will be created in a separate thread.
+
 	 The connection type is decided based on the URL scheme component.
 	 The connection is not automatically opened. Connect the signals and
 	 call start() to open it. The signal opened() will be emitted when
@@ -71,32 +71,50 @@ public:
 	 \param parent the parent object for the connection
 	 \return new connection or 0 if type is unrecognized
 	 */
-	static Connection *create(const QUrl& url, QObject *parent = 0);
+	static Connection *create(const QUrl& url);
+
+	static void stopAll();
 
 	/**
-	  \brief Connect the signals and slots for a query browser window
+	 \brief Open the database connection.
 
-	  This function emits a signal that is sent to the database context manager,
-	  which will create a new context for the query tool object.
-	  The following signals and slots will be connected:
-	  */
-	void connectContext(QObject *querytool);
+	 Either opened() or cannotOpen() will be emitted.
+	*/
+	void open();
 
 	/**
-	  \brief Request emission of latest dbStructure
+	 \brief Create a new query context
+	 The given method will be called when the query context is ready.
+	*/
+	void createQuery(QObject *notifyObject, const QByteArray &notifyMethod);
+
+	/**
+	  \brief Request the latest Database structure.
 	  
-	  This function just emits the needDbStructure signal from the
-	  context of this object.
+	  dbStructure() will be emitted when ready.
 	  */
 	void getDbStructure();
 
 	/**
-	  \brief Request emission of latest dbList
+	  \brief Request the latest list of databases
 
-	  This function just emits the needDbList signal from the
-	  context of this object.
+	  dbList() will be emitted when ready
 	  */
 	void getDbList();
+
+	/**
+	  \brief Request a creation script for the given table
+
+	 The signal newScript() will be emitted when ready
+	 */
+	void getCreateScript(const QString &tablename);
+
+	/**
+	 \brief Switch to another database
+
+	 Not all backends support this
+	 */
+	void switchDatabase(const QString &dbname);
 
 	/**
 	  \brief Get the name of the connection
@@ -122,7 +140,7 @@ signals:
 	void opened();
 
 	//! Couldn't open connection
-	void cannotOpen(const QString& message);
+	void cannotOpen(const QString &message);
 
 	/**
 	 * \brief The name of this connection has changed.
@@ -132,53 +150,16 @@ signals:
 	 */
 	void nameChanged(const QString& name);
 
-	/**
-	 \brief Request new context for an object from the context manager
-
-	 This is a connected to the context manager via a blocking queued connection.
-	 */
-
-	void needNewContext(QObject *forthis);
-
-	//! Request new dbStructure
-	void needDbStructure();
-
-	//! Request new dbList
-	void needDbList();
-
-	/**
-	 * \brief Request generation of a table creation script.
-	 * \param table the table name
-	 */
-	void needCreateTable(const QString& table);
-
-	/**
-	 * \brief Request switching of connected database
-	 * \param database name of the new database
-	 */
-	void switchDatabase(const QString& database);
-
 	//! Updated database structure info
 	void dbStructure(const meta::Database& tables);
 
-	/**
-	 * \brief Updated database list
-	 * \param databases list of available database names
-	 * \param current the currently connected database
-	 */
-	void dbList(const QStringList& databases, const QString& current);
+	//! Updated list of databases
+	void dbList(const QStringList &databases, const QString &current);
 
-	/**
-	 * \brief A new script has been generated
-	 *
-	 * The script can be shown in a new script editor tab.
-	 * \param script the newly generated script
-	 */
+	//! A new script has been generated
 	void newScript(const QString& script);
 
 protected:
-	void run();
-
 	/**
 	 * \brief Change the connection URL.
 	 *
@@ -190,53 +171,9 @@ protected:
 	/**
 	  \brief Set connection properties
 
-	  This is called from the run() method just before opening the connection.
+	  This is called from the doOpen() method just before opening the connection.
 	  */
 	virtual void prepareConnection(QSqlDatabase &db) = 0;
-
-	/**
-	  \brief Get schemas available in the current database
-
-	  The schema list contains all the schemas and their tables available
-	  to the current user.
-	  If a database does not support schemas, the return value should contain
-	  a single schema with an empty name which in turn should contain
-	  the list of database tables.
-
-	  This should be called only from this thread.
-	  */
-	virtual QVector<meta::Schema> schemas() = 0;
-
-	/**
-	  \brief Get a list of databases the user can access
-
-	  This should be called only from this thread.
-	  */
-	virtual QStringList databases() = 0;
-
-	/**
-	 * \brief Generate a creation script for a table
-	 *
-	 * The default implementation returns an empty string
-	 * and prints a warning. Reimplement this if your subclass
-	 * has the SHOW_CREATE capability.
-	 *
-	 * \param table the table name
-	 */
-	virtual QString createScript(const QString& table);
-
-	/**
-	 * \brief Switch the currently active database
-	 *
-	 * The default implementation returns false and prints
-	 * a warning. Reimplement this if your subclass has the
-	 * SWITCH_DB capability.
-	 *
-	 * This should be called only from this thread.
-	 * \param database the new database
-	 * \return true if switch succeeded
-	 */
-	virtual bool selectDatabase(const QString& database);
 
 	/**
 	  \brief Return the Qt SQL driver type for this connection
@@ -245,6 +182,16 @@ protected:
 
 	//! Database connection
 	QSqlDatabase m_db;
+
+protected slots:
+	virtual void doGetDbStructure() = 0;
+	virtual void doGetDbList() = 0;
+	virtual void doSwitchDatabase(const QString &name);
+	virtual void doGetCreateScript(const QString& table);
+
+private slots:
+	void doOpen();
+	void doCreateQuery(QObject*, const QByteArray&);
 
 private:
 	//! Number of connections opened (this is used to make unique connection names)

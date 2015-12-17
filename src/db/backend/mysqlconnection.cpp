@@ -22,7 +22,9 @@
 #include <QDebug>
 
 #include "mysqlconnection.h"
+#include "../../meta/database.h"
 #include "../../meta/table.h"
+#include "../../meta/schema.h"
 
 namespace db {
 
@@ -40,7 +42,7 @@ bool MysqlConnection::isCapable(Capability capability) const
 	}
 }
 
-QVector<meta::Schema> MysqlConnection::schemas()
+void MysqlConnection::doGetDbStructure()
 {
 	QVector<meta::Table> tables;
 
@@ -104,39 +106,40 @@ QVector<meta::Schema> MysqlConnection::schemas()
 
 	QVector<meta::Schema> schemas(1);
 	schemas[0] = meta::Schema(QString(), tables);
-	return schemas;
+	emit dbStructure(meta::Database(schemas));
 }
 
-QStringList MysqlConnection::databases()
+void MysqlConnection::doGetDbList()
 {
 	QSqlQuery q("SHOW DATABASES", m_db);
 	QStringList list;
 	while(q.next())
 		list << q.value(0).toString();
-	return list;
+	emit dbList(list, name());
 }
 
-bool MysqlConnection::selectDatabase(const QString& database)
+void MysqlConnection::doSwitchDatabase(const QString& database)
 {
 	QSqlQuery q(m_db);
 	if(q.exec("USE " + database)) {
 		QUrl newurl = url();
 		newurl.setPath(database);
 		changeUrl(newurl);
-		return true;
+		doGetDbList();
+		doGetDbStructure();
 	}
-	return false;
 }
 
-QString MysqlConnection::createScript(const QString& table)
+void MysqlConnection::doGetCreateScript(const QString& table)
 {
 	QSqlQuery q("SHOW CREATE TABLE " + table, m_db);
 	// This query returns two columns: table name, create
 	if(!q.next()) {
 		qWarning() << "Couldn't show table (" << table << ") creation script: " << q.lastError().text();
-		return QString();
+		emit newScript(q.lastError().text());
 	}
-	return q.value(1).toString();
+
+	emit newScript(q.value(1).toString());
 }
 
 }

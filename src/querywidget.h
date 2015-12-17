@@ -23,6 +23,7 @@ class QueryView;
 class SqlLineEdit;
 class TableCellIterator;
 namespace db {
+	class Query;
 	class QueryResults;
 }
 namespace meta {
@@ -63,9 +64,6 @@ public:
 	TableCellIterator *tableIterator() const;
 
 signals:
-	void doQuery(const QString& query, int limit);
-	void getMoreResults(int limit);
-
 	/**
 	 * \brief Refresh database structure
 	 *
@@ -75,11 +73,7 @@ signals:
 	void dbStructure(const meta::Database &db);
 
 public slots:
-	/**
-	 * \brief Show query results
-	 * \param results query results
-	 */
-	void queryResults(const db::QueryResults& results);
+	void attachQueryContext(db::Query *qc);
 
 	/**
 	 * \brief Clear results view
@@ -106,8 +100,9 @@ public slots:
 	 */
 	void findPrev();
 
-protected slots:
+private slots:
 	void doQuery(const QString& query);
+	void showResults(const db::QueryResults& results);
 
 protected:
 	void showEvent(QShowEvent *e);
@@ -115,6 +110,7 @@ protected:
 private:
 	void findInPage(bool forward);
 
+	db::Query *m_ctx;
 	QueryView *m_view;
 	SqlLineEdit *m_query;
 	QWidget *m_find;

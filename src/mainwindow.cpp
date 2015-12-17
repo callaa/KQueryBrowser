@@ -56,6 +56,7 @@ MainWindow::MainWindow(db::Connection *connection, QWidget *parent)
 
 	connect(connection, &db::Connection::nameChanged, this, &MainWindow::nameChange);
 	connect(connection, &db::Connection::newScript, this, &MainWindow::newScriptTab);
+	connect(this, &QObject::destroyed, m_connection, &QObject::deleteLater);
 
 	// Create tabs for query and script widgets. This is the central widget
 	m_tabs = new QTabWidget();
@@ -68,22 +69,20 @@ MainWindow::MainWindow(db::Connection *connection, QWidget *parent)
 	newQueryTab();
 
 	// Create the table list dock widget
-	TableListWidget *tablelist = new TableListWidget(m_connection->isCapable(db::Connection::SHOW_CREATE), this);
+	TableListWidget *tablelist = new TableListWidget(m_connection, this);
 	tablelist->setObjectName("tablelist");
 	tablelist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, tablelist);
 	connect(m_connection, &db::Connection::dbStructure, tablelist, &TableListWidget::refreshTree);
 	connect(tablelist, &TableListWidget::runQuery, this, &MainWindow::runQuery);
-	connect(tablelist, &TableListWidget::showCreate, m_connection, &db::Connection::needCreateTable);
 	m_connection->getDbStructure();
 
 	QAction *showtables = actionCollection()->action("showtables");
 	connect(tablelist, SIGNAL(visibilityChanged(bool)), showtables, SLOT(setChecked(bool)));
 	connect(showtables, SIGNAL(triggered(bool)), tablelist, SLOT(setVisible(bool)));
-	connect(tablelist, SIGNAL(refresh()), m_connection, SIGNAL(needDbStructure()));
 
 	// Create the database list dock widget
-	DatabaseListWidget *dblist = new DatabaseListWidget(m_connection->isCapable(db::Connection::SWITCH_DB), this);
+	DatabaseListWidget *dblist = new DatabaseListWidget(m_connection, this);
 	dblist->setObjectName("databaselist");
 	dblist->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, dblist);
@@ -95,12 +94,7 @@ MainWindow::MainWindow(db::Connection *connection, QWidget *parent)
 			showdbs, SLOT(setChecked(bool)));
 	connect(showdbs, SIGNAL(triggered(bool)),
 			dblist, SLOT(setVisible(bool)));
-	connect(dblist, SIGNAL(refresh()),
-			m_connection, SIGNAL(needDbList()));
-	connect(dblist, SIGNAL(switchDatabase(QString)),
-			m_connection, SIGNAL(switchDatabase(QString)));
-	connect(dblist, SIGNAL(newConnection(QString)),
-			this, SLOT(newDbConnection(QString)));
+	connect(dblist, &DatabaseListWidget::newConnection, this, &MainWindow::newDbConnection);
 
 	readSettings();
 
@@ -126,7 +120,6 @@ MainWindow::MainWindow(db::Connection *connection, QWidget *parent)
 MainWindow::~MainWindow()
 {
 	writeSettings();
-	delete m_connection;
 }
 
 void MainWindow::nameChange(const QString& name)
@@ -270,7 +263,8 @@ void MainWindow::renameQueryTab(int index)
 
 void MainWindow::newTab(QWidget *widget, const QString& title)
 {
-	m_connection->connectContext(widget);
+	m_connection->createQuery(widget, "attachQueryContext");
+
 	m_tabs->addTab(widget, title);
 
 	if(qobject_cast<ScriptWidget*>(widget))
@@ -281,11 +275,12 @@ void MainWindow::newTab(QWidget *widget, const QString& title)
 	m_tabs->setCurrentWidget(widget);
 }
 
-void MainWindow::newQueryTab()
+QueryWidget *MainWindow::newQueryTab()
 {
 	QueryWidget *qw = new QueryWidget(this);
 	connect(m_connection, &db::Connection::dbStructure, qw, &QueryWidget::dbStructure);
 	newTab(qw, tr("Query %1").arg(++m_querytabs));
+	return qw;
 }
 
 void MainWindow::newScriptTab(const QString& content)
@@ -417,8 +412,8 @@ void MainWindow::runQuery(const QString &query)
 	if(qw!=0) {
 		qw->runQuery(query);
 	} else {
-		newQueryTab();
-		qobject_cast<QueryWidget*>(m_tabs->currentWidget())->runQuery(query);
+		QueryWidget *qw = newQueryTab();
+		qw->runQuery(query);
 	}
 }
 

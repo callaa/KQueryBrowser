@@ -1,16 +1,19 @@
 
 #include "databaselistwidget.h"
+#include "db/connection.h"
 
 #include <QMenu>
 #include <QFont>
 #include <QListWidget>
 
-DatabaseListWidget::DatabaseListWidget(bool canswitch, QWidget *parent) :
-	QDockWidget(tr("Databases"), parent), m_canswitch(canswitch)
+DatabaseListWidget::DatabaseListWidget(db::Connection *connection, QWidget *parent) :
+	QDockWidget(tr("Databases"), parent), m_connection(connection)
 {
+	m_canswitch = connection->isCapable(db::Connection::SWITCH_DB);
 	m_view = new QListWidget(this);
 	m_view->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
+	connect(connection, &db::Connection::dbList, this, &DatabaseListWidget::refreshList);
 
 	setWidget(m_view);
 }
@@ -18,7 +21,7 @@ DatabaseListWidget::DatabaseListWidget(bool canswitch, QWidget *parent) :
 void DatabaseListWidget::refreshList(const QStringList &databases, const QString& current)
 {
 	m_view->clear();
-	foreach(const QString& db, databases) {
+	for(const QString &db : databases) {
 		QListWidgetItem *item = new QListWidgetItem(db, m_view);
 		if(db == current) {
 			QFont font = item->font();
@@ -49,10 +52,11 @@ void DatabaseListWidget::customContextMenu(const QPoint& point)
 	QAction *a = menu.exec(m_view->mapToGlobal(point));
 	if(a!=0) {
 		if(a==refreshAct)
-			emit refresh();
+			m_connection->getDbList();
 		else if(a==newConnect)
 			emit newConnection(item->text());
 		else if(a==switchDb)
-			emit switchDatabase(item->text());
+			m_connection->switchDatabase(item->text());
 	}
 }
+

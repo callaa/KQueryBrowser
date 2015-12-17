@@ -17,9 +17,10 @@
 #include <QDebug>
 #include <QSqlError>
 #include <QMutexLocker>
+#include <QThread>
 
 #include "connection.h"
-#include "dbctxmanager.h"
+#include "query.h"
 
 #include "backend/sqlite3connection.h"
 #include "backend/mysqlconnection.h"
@@ -27,29 +28,43 @@
 
 namespace db {
 
+static QThread *DB_THREAD;
+
 int Connection::m_count = 0;
 
 Connection::Connection(const QUrl& url, QObject *parent) :
-	QThread(parent), m_url(url)
+	QObject(parent), m_url(url)
 {
 }
 
 Connection::~Connection()
 {
-	quit();
-	wait();
+	QString name = m_db.connectionName();
+	m_db.close();
+	QSqlDatabase::removeDatabase(name);
 }
 
-Connection *Connection::create(const QUrl& url, QObject *parent)
+Connection *Connection::create(const QUrl& url)
 {
+	Connection *c = nullptr;
 	if(url.scheme() == "sqlite3")
-		return new Sqlite3Connection(url, parent);
+		c = new Sqlite3Connection(url);
 	else if(url.scheme() == "mysql")
-		return new MysqlConnection(url, parent);
+		c = new MysqlConnection(url);
 	else if(url.scheme() == "pgsql")
-		return new PgsqlConnection(url, parent);
+		c = new PgsqlConnection(url);
 	else
-		return 0;
+		qWarning() << "Unhandled scheme:" << url.scheme();
+
+	if(c) {
+		if(!DB_THREAD) {
+			DB_THREAD = new QThread;
+			DB_THREAD->start();
+		}
+
+		c->moveToThread(DB_THREAD);
+	}
+	return c;
 }
 
 QUrl Connection::url() const
@@ -67,22 +82,24 @@ void Connection::changeUrl(const QUrl& url)
 	emit nameChanged(name());
 }
 
-void Connection::connectContext(QObject *querytool)
+
+void Connection::open()
 {
-	emit needNewContext(querytool);
+	QMetaObject::invokeMethod(this, "doOpen");
 }
 
-void Connection::getDbStructure()
+void Connection::createQuery(QObject *notifyObject, const QByteArray &notifyMethod)
 {
-	emit needDbStructure();
+	QMetaObject::invokeMethod(this, "doCreateQuery", Qt::AutoConnection, Q_ARG(QObject*, notifyObject), Q_ARG(const QByteArray&, notifyMethod));
 }
 
-void Connection::getDbList()
+void Connection::doCreateQuery(QObject *notifyObject, const QByteArray &notifyMethod)
 {
-	emit needDbList();
+	Query *q = new Query(m_db, this);
+	QMetaObject::invokeMethod(notifyObject, notifyMethod.constData(), Qt::AutoConnection, Q_ARG(db::Query*, q));
 }
 
-void Connection::run()
+void Connection::doOpen()
 {
 	qDebug() << "Opening database connection" << m_count;
 	QString dbname = QString("c%1").arg(m_count++);
@@ -91,50 +108,51 @@ void Connection::run()
 	prepareConnection(m_db);
 
 	if(m_db.open()) {
-		DbCtxManager *ctxman = new DbCtxManager(this);
-		connect(this, &Connection::needNewContext,
-				ctxman, &DbCtxManager::createContext, Qt::BlockingQueuedConnection);
-		connect(this, &Connection::needDbStructure,
-				ctxman, &DbCtxManager::getDbStructure, Qt::QueuedConnection);
-		connect(this, &Connection::needDbList,
-				ctxman, &DbCtxManager::getDbList, Qt::QueuedConnection);
-		connect(this, &Connection::needCreateTable,
-				ctxman, &DbCtxManager::makeCreateTable, Qt::QueuedConnection);
-		connect(this, &Connection::switchDatabase,
-				ctxman, &DbCtxManager::switchDatabase, Qt::QueuedConnection);
-		connect(ctxman, &DbCtxManager::dbStructure,
-				this, &Connection::dbStructure, Qt::QueuedConnection);
-		connect(ctxman, &DbCtxManager::dbList,
-				this, &Connection::dbList, Qt::QueuedConnection);
-		connect(ctxman, &DbCtxManager::newScript,
-				this, &Connection::newScript, Qt::QueuedConnection);
 		emit opened();
-
-		exec();
-		delete ctxman;
 
 	} else {
 		QString error = m_db.lastError().text();
 		qDebug() << "Connection error:" << error;
 		emit cannotOpen(error);
 	}
-	m_db.close();
-	m_db = QSqlDatabase();
-	QSqlDatabase::removeDatabase(dbname);
 }
 
-QString Connection::createScript(const QString& table)
+void Connection::getDbStructure()
+{
+	QMetaObject::invokeMethod(this, "doGetDbStructure");
+}
+
+void Connection::getDbList()
+{
+	QMetaObject::invokeMethod(this, "doGetDbList");
+}
+
+void Connection::getCreateScript(const QString &table)
+{
+	if(isCapable(SHOW_CREATE))
+		QMetaObject::invokeMethod(this, "doGetCreateScript", Q_ARG(QString, table));
+	else
+		qWarning() << "This connection type does not support create script generation!";
+}
+
+void Connection::doGetCreateScript(const QString& table)
 {
 	Q_UNUSED(table);
 	qWarning("createScript() not implemented for this connection type!");
-	return QString();
 }
 
-bool Connection::selectDatabase(const QString& database)
+void Connection::switchDatabase(const QString &database)
+{
+	if(isCapable(SWITCH_DB))
+		QMetaObject::invokeMethod(this, "doSwitchDatabase", Q_ARG(QString, database));
+	else
+		qWarning() << "This connection type does not support switching active databases!";
+}
+
+void Connection::doSwitchDatabase(const QString& database)
 {
 	Q_UNUSED(database);
-	qWarning("selectDatabase() not implemented for this connection type!");
-	return false;
+	qWarning("doSwitchDatabase() not implemented for this connection type!");
 }
 
 }

@@ -28,7 +28,7 @@ class PgsqlConnection : public ServerConnection
 {
     Q_OBJECT
 public:
-    PgsqlConnection(const QUrl& url, QObject *parent);
+    PgsqlConnection(const QUrl& url, QObject *parent=nullptr);
 
 	bool isCapable(Capability capability) const;
 
@@ -36,8 +36,8 @@ protected:
 	QString type() const { return QString("QPSQL"); }
 	int defaultPort() const { return 5432; }
 
-	QVector<meta::Schema> schemas();
-	QStringList databases();
+	void doGetDbStructure();
+	void doGetDbList();
 };
 
 }

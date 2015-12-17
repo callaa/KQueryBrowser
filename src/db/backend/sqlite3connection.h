@@ -25,19 +25,19 @@ class Sqlite3Connection : public Connection
 {
     Q_OBJECT
 public:
-	Sqlite3Connection(const QUrl& url, QObject *parent);
+	Sqlite3Connection(const QUrl& url, QObject *parent=nullptr);
 
 	QString name() const;
 	bool isCapable(Capability capability) const;
 
 protected:
 	QString type() const { return QString("QSQLITE"); }
-
 	void prepareConnection(QSqlDatabase &db);
 
-	QVector<meta::Schema> schemas();
-	QStringList databases();
-	QString createScript(const QString& table);
+protected slots:
+	void doGetDbStructure();
+	void doGetDbList();
+	void doGetCreateScript(const QString& table) override;
 };
 
 }

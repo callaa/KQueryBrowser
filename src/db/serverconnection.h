@@ -33,10 +33,10 @@ class ServerConnection : public Connection
 public:
 	ServerConnection(const QUrl& url, QObject *parent);
 
-	QString name() const;
+	QString name() const override;
 
 protected:
-	void prepareConnection(QSqlDatabase &db);
+	void prepareConnection(QSqlDatabase &db) override;
 
 	/**
 	 * \brief Get the default port

@@ -22,7 +22,9 @@
 #include <QDebug>
 
 #include "sqlite3connection.h"
+#include "../../meta/database.h"
 #include "../../meta/table.h"
+#include "../../meta/schema.h"
 
 namespace db {
 
@@ -49,7 +51,7 @@ QString Sqlite3Connection::name() const
 	return url().fileName();
 }
 
-QVector<meta::Schema> Sqlite3Connection::schemas()
+void Sqlite3Connection::doGetDbStructure()
 {
 	QVector<meta::Table> tables;
 
@@ -104,18 +106,18 @@ QVector<meta::Schema> Sqlite3Connection::schemas()
 
 	QVector<meta::Schema> schemas(1);
 	schemas[0] = meta::Schema(QString(), tables);
-	return schemas;
+	emit dbStructure(meta::Database(schemas));
 }
 
-QStringList Sqlite3Connection::databases()
+void Sqlite3Connection::doGetDbList()
 {
 	// TODO return list of attached databases
 	QStringList list;
 	list << name();
-	return list;
+	emit dbList(list, name());
 }
 
-QString Sqlite3Connection::createScript(const QString& table)
+void Sqlite3Connection::doGetCreateScript(const QString& table)
 {
 	QSqlQuery q(m_db);
 	q.prepare("SELECT sql FROM sqlite_master WHERE tbl_name=?");
@@ -123,9 +125,11 @@ QString Sqlite3Connection::createScript(const QString& table)
 	q.exec();
 	if(q.next()==false) {
 		qWarning() << "Couldn't show table (" << table << ") creation script: " << q.lastError().text();
-		return QString();
+		emit newScript(q.lastError().text());
+
+	} else {
+		emit newScript(q.value(0).toString());
 	}
-	return q.value(0).toString();
 }
 
 }
