@@ -1,0 +1,92 @@
+html {
+	font-family: sans-serif;
+}
+
+table {
+	border-collapse: collapse;
+	position: relative;
+}
+
+tbody>tr { background: #fcfcfc }
+tbody>tr:nth-child(even) { background: #eff0f1; }
+
+th, td { padding: 0.4em 0.6em; }
+
+th {
+	background: #4d4d4d;
+	font-weight: normal;
+	color: #eff0f1;
+	border: 1px solid #4d4d4d;
+	position: sticky;
+	top: 0;
+}
+
+th.pk { font-weight: bold }
+th.fk { text-decoration: underline }
+
+td {
+	border-left: 1px solid #bdc3c7;
+	border-right: 1px solid #bdc3c7;
+	white-space: nowrap
+}
+
+tr:last-child>td {
+	border-bottom: 1px solid #bdc3c7;
+}
+
+h1.query {
+	font-family: monospace;
+	font-size: 1.5em;
+}
+
+/* We use this to mark up NULLs */
+td>b {
+        background: #95a5a6;
+        padding: 0.2em;
+        font-size: 0.7em;
+        border: 1px solid #4d4d4d;
+        color: #4d4d4d;
+}
+
+/* Truncated cells with link to full content */
+td>a {
+	color: #000;
+	text-decoration-style: dotted;
+}
+
+td>a.binary {
+	font-style: italic;
+}
+
+td>a:after { content: "..." }
+
+/* Error and success message elements */
+p.error, p.success {
+	border-radius: 0.2em;
+	padding: 0.5em;
+	border: 1px solid #c00;
+}
+
+p.error {
+	border-color: #c00;
+	background: #fcc;
+}
+
+p.success {
+	border-color: #0c0;
+	background: #cfc;
+}
+
+/* Action buttons */
+.actions button {
+	margin: 0.2em 0.5em;
+	padding: 0.2em 1em;
+}
+
+.actions.inprogress>* {
+	visibility: hidden;
+}
+
+.actions.inprogress::before {
+	content: "..."
+}

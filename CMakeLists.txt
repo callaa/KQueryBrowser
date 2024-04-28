@@ -1,36 +1,32 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.20)
 
-project (kquerybrowser)
-find_package(ECM REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
+set(QT_MIN_VERSION "6.7.0")
+set(KF_MIN_VERSION "6.0.0")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTORCC ON)
 
-include(ECMInstallIcons)
-include(ECMAddAppIcon) 
+project(kquerybrowser VERSION 1.0.0 LANGUAGES CXX)
+
+find_package(ECM ${KF_MIN_VERSION} REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(KDEInstallDirs)
-include(KDECompilerSettings)
 include(KDECMakeSettings)
+include(KDECompilerSettings NO_POLICY_SCOPE)
 include(FeatureSummary)
 
-add_subdirectory( src )
+find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Widgets WebEngineWidgets Sql)
+qt_standard_project_setup()
 
-# TODO use new desktop file naming scheme
-install(PROGRAMS
-	kquerybrowser.desktop
-	DESTINATION ${XDG_APPS_INSTALL_DIR}
+find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
+    CoreAddons
+    I18n
+    XmlGui
+    TextWidgets
+    KIO
+    Bookmarks
+    TextEditor
 )
 
-# TODO appdata
-#install(FILES
-	#${CMAKE_CURRENT_SOURCE_DIR}/data/kquerybrowser.appdata.xml
-	#DESTINATION ${CMAKE_INSTALL_METAINFODIR}
-#)
-
-ecm_install_icons(ICONS 
-	"hi128-app-kquerybrowser.png"
-	DESTINATION ${ICON_INSTALL_DIR}
-	THEME hicolor
-)
-
-feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
-
+add_subdirectory(src)

@@ -1,83 +1,46 @@
-find_package(Qt5 REQUIRED COMPONENTS
-	Core
-	Widgets
-	Sql
-	WebKitWidgets
-)
-find_package(KF5 REQUIRED COMPONENTS
-	CoreAddons
-	I18n
-	WidgetsAddons
-	TextWidgets
-	Bookmarks
-	ConfigWidgets
-	KIO
-	Completion
-	TextEditor
-)
-find_package(OktetaGui REQUIRED)
-
 set(kquerybrowser_SRCS
-	db/connection.cpp
-	db/serverconnection.cpp
-	db/query.cpp
-	db/queryresults.cpp
-	db/backend/sqlite3connection.cpp
-	db/backend/mysqlconnection.cpp
-	db/backend/pgsqlconnection.cpp
-	meta/database.cpp
-	meta/schema.cpp
-	meta/table.cpp
-	meta/column.cpp
-	export/exporter.cpp
-	export/htmlexporter.cpp
-	export/csvexporter.cpp
-	main.cpp
-	mainwindow.cpp
-	connectiondialog.cpp
-	queryview.cpp
-	valueview.cpp
-	querywidget.cpp
-	scriptwidget.cpp
-	tablelistwidget.cpp
-	databaselistwidget.cpp
-	sqllineedit.cpp
-	stringbuilder.cpp
-	bookmarks.cpp
-	bookmarkdialog.cpp
-	sqlcompletion.cpp
+    main.cpp
+    windows/mainwindow.h windows/mainwindow.cpp
+    windows/newconnection.ui windows/newconnectiondialog.h windows/newconnectiondialog.cpp
+    windows/bigvalue.ui windows/bigvaluedialog.h windows/bigvaluedialog.cpp
+    queryview/webengine.h queryview/webengine.cpp
+    queryview/queryview.h queryview/queryview.cpp
+    queryview/webapi.h queryview/webapi.cpp
+    db/database.h db/database.cpp
+    db/queryresult.h db/queryresult.cpp
+    db/sqliteadapter.h db/sqliteadapter.cpp
+    db/genericqtadapter.h db/genericqtadapter.cpp
+    db/qtqueryresult.h db/qtqueryresult.cpp
+    db/errorresult.h db/errorresult.cpp
+    db/schema.h db/schema.cpp
+    widgets/sqllineedit.h widgets/sqllineedit.cpp
+    widgets/tablelist.h widgets/tablelist.cpp
+    widgets/dblist.h widgets/dblist.cpp
+    widgets/findwidget.h widgets/findwidget.cpp
+    widgets/scripteditor.h widgets/scripteditor.cpp
+    utils/bookmarks.h utils/bookmarks.cpp
+    utils/sqlcompletion.h utils/sqlcompletion.cpp
+    utils/jsonnmodel.h utils/jsonnmodel.cpp
 )
 
-SET(kquerybrowser_RCCS
-	../res/resources.qrc
+qt_add_executable(kquerybrowser
+    ${kquerybrowser_SRCS}
+    html/html.qrc
+    res/resources.qrc
 )
 
-qt5_wrap_ui(kquerybrowser_SRCS
-	ui/connectiondialog.ui
-	ui/valueviewwidget.ui
-	ui/findwidget.ui
+target_include_directories(kquerybrowser INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(kquerybrowser PRIVATE
+    Qt6::Widgets
+    Qt6::WebEngineWidgets
+    Qt6::Sql
+    KF6::CoreAddons
+    KF6::I18n
+    KF6::XmlGui
+    KF6::KIOCore
+    KF6::KIOFileWidgets
+    KF6::Bookmarks
+    KF6::BookmarksWidgets
+    KF6::TextEditor
 )
-
-qt5_add_resources(kquerybrowser_SRCS ../res/resources.qrc)
-
-add_executable(kquerybrowser ${kquerybrowser_SRCS})
-
-target_link_libraries(kquerybrowser
-	Qt5::Widgets
-	Qt5::WebKitWidgets
-	Qt5::Sql
-	KF5::CoreAddons
-	KF5::KIOCore
-	KF5::TextWidgets
-	KF5::Bookmarks
-	KF5::ConfigWidgets
-	KF5::KIOCore
-	KF5::KIOWidgets
-	KF5::KIOFileWidgets
-	KF5::Completion
-	KF5::TextEditor
-	OktetaGui
-)
-
-install(TARGETS kquerybrowser  ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-

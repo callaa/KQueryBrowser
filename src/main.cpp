@@ -1,95 +1,73 @@
-//
-// This file is part of KQueryBrowser.
-//
-// KQueryBrowser is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// KQueryBrowser is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with KQueryBrowser.  If not, see <http://www.gnu.org/licenses/>.
-//
-#include "connectiondialog.h"
-#include "db/query.h"
-#include "db/queryresults.h"
-#include "meta/database.h"
-#include "bookmarks.h"
+#include "windows/mainwindow.h"
+#include "windows/newconnectiondialog.h"
+#include "db/database.h"
 
 #include <QApplication>
-#include <QUrl>
 #include <QCommandLineParser>
-#include <QDebug>
-
+#include <QMessageBox>
+#include <QWebEngineUrlScheme>
 #include <KAboutData>
 #include <KLocalizedString>
 
-void initApp(QApplication &app)
+using namespace Qt::StringLiterals;
+
+int main(int argc, char **argv)
 {
-	qRegisterMetaType<db::QueryResults>();
-	qRegisterMetaType<db::Query*>("Query");
-	qRegisterMetaType<meta::Database>();
+    // Register the Web Engine URL scheme we use to communicate with the views.
+    // This has to be done before instatiating QApplication
+    QWebEngineUrlScheme apiScheme("api");
+    apiScheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
+    apiScheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::CorsEnabled | QWebEngineUrlScheme::FetchApiAllowed);
+    QWebEngineUrlScheme::registerScheme(apiScheme);
 
-	KAboutData aboutData(
-		// The program name used internally.
-		QStringLiteral("kquerybrowser"),
-		// A displayable program name string.
-		i18n("KQueryBrowser"),
-		// The program version string.
-		QStringLiteral("0.2.0"),
-		// Short description of what the app does.
-		i18n("A database query tool for KDE"),
-		// The license this code is released under
-		KAboutLicense::GPL_V3,
-		// Copyright Statement
-		QStringLiteral("(c) 2011-2015, Calle Laakkonen"),
-		// Optional text shown in the About box.
-		// Can contain any information desired.
-		QString(),
-		// The program homepage string.
-		QStringLiteral("https://github.com/callaa/kquerybrowser/"),
-		// The bug report email address
-		QStringLiteral("laakkonenc@gmail.com")
-	);
+    // Initialize application
+	QApplication app(argc, argv);
+    KLocalizedString::setApplicationDomain("kquerybrowser");
 
+    // Set application info
+    KAboutData aboutData(
+        u"kquerybrowser"_s,
+        u"KQueryBrowser"_s,
+        u"1.0.0"_s,
+        i18n("SQL query browser"),
+        KAboutLicense::GPL_V3,
+        i18n("(c) 2024"),
+        i18n("A database query tool for PostgreSQL, MariaDB, and Sqlite3"),
+        u"https://github.com/callaa/kquerybrowser/"_s,
+        u"https://github.com/callaa/kquerybrowser/issues"_s
+    );
+    aboutData.addAuthor(u"Calle Laakkonen"_s, QString(), u"laakkonenc@gmail.com"_s);
     KAboutData::setApplicationData(aboutData);
 
-	Bookmarks::init();
+    // Parse command line arguments
+    QCommandLineParser parser;
+    aboutData.setupCommandLine(&parser);
 
-	QCommandLineParser parser;
-	parser.setApplicationDescription("A SQL query browser for KDE");
-	parser.addHelpOption();
-	parser.addPositionalArgument("URL", "Database URL");
+    parser.addPositionalArgument(u"url"_s, i18n("Database URL"));
 
-	parser.process(app);
+    parser.process(app);
+    aboutData.processCommandLine(&parser);
 
-	QStringList args = parser.positionalArguments();
-	if(args.isEmpty()) {
-		(new ConnectionDialog())->show();
+    // Connect directly to a database if URL is given
+    if(!parser.positionalArguments().isEmpty()) {
+        auto url = QUrl(parser.positionalArguments().at(0));
+        if(!url.isValid()) {
+            qFatal() << "Invalid URL" << parser.positionalArguments().at(0);
+            return 1;
+        }
 
-	} else {
-		for(const QString &arg : args) {
-			QUrl url(arg);
-			if(url.isValid()) {
-				ConnectionDialog::openDialog(url);
-			} else {
-				qWarning() << "Invalid URL:" << arg;
-			}
-		}
-	}
+        auto db = DatabaseAdapter::openConnection(url);
+        if(!db) {
+            return 1;
+        }
 
-}
+        auto mw = new MainWindow(db);
+        mw->show();
 
-int main (int argc, char *argv[])
-{
-	QApplication app(argc, argv);
-
-	initApp(app);
+    } else {
+        // Open connection selector
+        NewConnectionDialog::openNewDialog();
+    }
 
 	return app.exec();
 }
-

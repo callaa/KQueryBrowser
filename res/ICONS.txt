@@ -1,9 +1,0 @@
-The following icons by Frédéric Bellaiche are GPL licensed:
-* mysql.svg
-* pgsql.svg
-
-The following icon is based on the Public Domain image file from SQLite:
-* sqlite3.svg
-
-The rest of the icons are original.
-The PNG files are generated from the SVG files.

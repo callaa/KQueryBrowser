@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/html">
+        <file>query.html</file>
+        <file>styles.css</file>
+        <file>scripts.js</file>
+        <file>domutils.js</file>
+    </qresource>
+</RCC>
